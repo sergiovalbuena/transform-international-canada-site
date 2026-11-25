@@ -1,0 +1,21 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import BlockRenderer from '../components/blocks/BlockRenderer.astro';
+import { getHome } from '../lib/content';
+import { heroPreload } from '../lib/hero';
+
+// The whole page is described in src/content/settings/home.json.
+const home = await getHome();
+const hero = home.blocks.find((b) => b.type === 'hero');
+const preload = hero ? await heroPreload(hero.image) : undefined;
+---
+
+<BaseLayout
+  title={home.title}
+  description={home.description}
+  image={hero?.image}
+  imageAlt={hero?.imageAlt}
+  preload={preload}
+>
+  <BlockRenderer blocks={home.blocks} />
+</BaseLayout>

@@ -1,0 +1,105 @@
+---
+import type { BlockOf } from '../../content.config';
+import Button from '../ui/Button.astro';
+import GivingCards from '../ui/GivingCards.astro';
+import Icon from '../ui/Icon.astro';
+import { emphasize, getGiving, getPublishedLevels } from '../../lib/content';
+
+type Props = BlockOf<'givingLevels'>;
+const { eyebrow, heading, text, cta } = Astro.props;
+const giving = await getGiving();
+// With one or two gift levels, the text sits beside the cards; with more,
+// it sits above a full-width row.
+const split = (await getPublishedLevels('home')).length <= 2;
+---
+
+<section class:list={['section band-cream giving', { 'is-split': split }]} aria-labelledby="giving-title">
+  <div class="container-site giving-layout">
+    <div class="giving-copy">
+      <div class="giving-head" data-reveal>
+        <p class="eyebrow">{eyebrow}</p>
+        <h2 id="giving-title" class="heading-lg" set:html={emphasize(heading)} />
+        <p class="lede">{text}</p>
+      </div>
+
+      <div class="giving-foot" data-reveal>
+        <Button href={cta.href} variant="donate" size="lg" icon="heart">{cta.label}</Button>
+        <p class="giving-notes">
+          <Icon name="shield" size={20} />
+          <span>{giving.taxReceipt} {giving.zeffyShortNote}</span>
+        </p>
+      </div>
+    </div>
+
+    <div class="giving-cards">
+      <GivingCards where="home" />
+    </div>
+  </div>
+</section>
+
+<style>
+  .giving-layout {
+    display: grid;
+    gap: clamp(2.5rem, 2rem + 3vw, 4rem);
+  }
+  .giving-copy {
+    display: contents;
+  }
+  .giving-head {
+    display: grid;
+    gap: 1rem;
+    max-width: 44rem;
+    order: 1;
+  }
+  .giving-cards {
+    order: 2;
+  }
+  .giving-foot {
+    order: 3;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1.25rem 2rem;
+  }
+  .giving-notes {
+    display: flex;
+    gap: 0.6rem;
+    align-items: flex-start;
+    max-width: 38rem;
+    font-size: 0.975rem;
+    color: var(--color-ink-muted);
+  }
+  .giving-notes :global(svg) {
+    flex: none;
+    margin-top: 0.15rem;
+    color: var(--color-green-700);
+  }
+
+  /* Two cards: text and button on the left, cards on the right. */
+  @media (min-width: 64rem) {
+    .is-split .giving-layout {
+      grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+      gap: 4rem 5rem;
+      align-items: center;
+    }
+    .is-split .giving-copy {
+      display: grid;
+      gap: 2.5rem;
+      align-content: center;
+    }
+    .is-split .giving-foot {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .is-split .giving-cards :global(.giving-grid) {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    /* Stagger the pair slightly so it reads as designed, not as leftovers. */
+    .is-split .giving-cards :global(.gift) {
+      align-self: start;
+    }
+    .is-split .giving-cards :global(.gift:nth-child(2)) {
+      margin-top: 3rem;
+    }
+  }
+</style>

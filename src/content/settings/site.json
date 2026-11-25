@@ -1,0 +1,124 @@
+{
+  "name": "Transform International (Canada)",
+  "legalName": "Transform International (Canada)",
+  "tagline": "Partners in Community Transformation",
+  "description": "Transform International (Canada) partners with local organizations in Burundi, Rwanda, Malawi and India so communities can build businesses, finish school and keep clean water flowing.",
+  "nav": [
+    {
+      "label": "About",
+      "href": "/who-we-are/",
+      "children": [
+        {
+          "label": "Who we are",
+          "href": "/who-we-are/"
+        },
+        {
+          "label": "The Transform Story",
+          "href": "/who-we-are/our-story/"
+        },
+        {
+          "label": "Board of Directors",
+          "href": "/who-we-are/board-of-directors/"
+        },
+        {
+          "label": "Partners and Supporters",
+          "href": "/who-we-are/advisory-team-and-partners/"
+        }
+      ]
+    },
+    {
+      "label": "Our work",
+      "href": "/what-we-do/",
+      "children": [
+        {
+          "label": "All programs",
+          "href": "/what-we-do/"
+        },
+        {
+          "label": "Street Business School, Burundi",
+          "href": "/thars/"
+        },
+        {
+          "label": "Rwanda Rising",
+          "href": "/rwanda-risings-progress/"
+        },
+        {
+          "label": "STREAMS, Malawi",
+          "href": "/streams/"
+        },
+        {
+          "label": "Community Health Clubs + SBS, Malawi",
+          "href": "/malawi-chc-sbs/"
+        },
+        {
+          "label": "Open Hands, India",
+          "href": "/india-ohet/"
+        },
+        {
+          "label": "Youth Trades, Rwanda",
+          "href": "/youth-trades/"
+        },
+        {
+          "label": "Youth Menstrual Hygiene, Malawi",
+          "href": "/rdp-pads-program/"
+        }
+      ]
+    },
+    {
+      "label": "Stories",
+      "href": "/stories/",
+      "children": []
+    },
+    {
+      "label": "Get involved",
+      "href": "/how-you-can-help/",
+      "children": [
+        {
+          "label": "Ways to help",
+          "href": "/how-you-can-help/"
+        },
+        {
+          "label": "Donate",
+          "href": "/donate/"
+        },
+        {
+          "label": "Contact us",
+          "href": "/contact/"
+        }
+      ]
+    }
+  ],
+  "donate": {
+    "label": "Donate",
+    "href": "/donate/"
+  },
+  "contact": {
+    "general": "nancy.gilbert@transforminternational.org",
+    "donations": "donations@transforminternational.ca",
+    "legacy": "carl.monk@transforminternational.ca",
+    "phone": "+1 778 676 4605",
+    "address": "1915 Crescent Road, Victoria, BC V8S 2G9"
+  },
+  "social": [
+    {
+      "label": "Facebook",
+      "href": "https://www.facebook.com/TransforminternationalCanada"
+    }
+  ],
+  "charity": {
+    "registrationNumber": "76947 1327 RR0001",
+    "since": "A registered Canadian charity since July 2019"
+  },
+  "footer": {
+    "mission": "We help communities help themselves by providing tools, resources and skills development — always through local partners who know their communities best.",
+    "taxReceipt": "Donations of more than $25 receive an official Canadian tax receipt."
+  },
+  "comingSoon": [
+    {
+      "slug": "how-you-can-help",
+      "title": "How you can help",
+      "oldUrl": "https://transforminternational.ca/how-you-can-help/",
+      "description": "Give, leave a legacy, volunteer or fundraise with us."
+    }
+  ]
+}

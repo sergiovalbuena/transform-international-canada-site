@@ -1,0 +1,237 @@
+{
+  "title": "Transform International (Canada) — Partners in Community Transformation",
+  "description": "We partner with local organizations in Burundi, Rwanda, Malawi and India so communities can start businesses, finish school and keep clean water flowing. 72 new entrepreneurs in 2026 alone.",
+  "_headlineOptions": [
+    "When communities have the tools, they *transform* their own futures.  ← chosen: hopeful, specific, and echoes the name",
+    "Local hands. Lasting change.",
+    "Skills, schooling and clean water — built with communities, owned by them."
+  ],
+  "blocks": {
+    "hero": {
+      "type": "hero",
+      "eyebrow": "Partners in community transformation",
+      "headline": "When communities have the tools, they *transform* their own futures.",
+      "text": "We partner with local organizations in Burundi, Rwanda, Malawi and India so families can start businesses, finish school and keep clean water flowing.",
+      "image": "photos/youth-trades/mechanics-workshop.jpg",
+      "imageAlt": "Young trainees in blue overalls work with a wrench and a jack during an outdoor mechanics class in Rwanda.",
+      "imagePosition": "62% 40%",
+      "caption": "Youth Trades program, Rwanda",
+      "primary": {
+        "label": "See our impact",
+        "href": "#impact"
+      },
+      "secondary": {
+        "label": "Donate",
+        "href": "/donate/"
+      }
+    },
+    "impact-counters": {
+      "type": "impactCounters",
+      "id": "impact",
+      "eyebrow": "Results, not promises",
+      "heading": "What communities achieved with your support",
+      "items": [
+        {
+          "value": 100,
+          "suffix": "%",
+          "label": "average rise in income",
+          "detail": "for graduates, within 12 months of graduation",
+          "project": "thars"
+        },
+        {
+          "value": 72,
+          "label": "new entrepreneurs",
+          "detail": "graduated together in Gitega, Burundi, in January 2026",
+          "project": "thars"
+        },
+        {
+          "value": 37,
+          "label": "university scholarships",
+          "detail": "in Rwanda in 2026, up from 26",
+          "project": "rwanda-risings-progress"
+        },
+        {
+          "value": 44,
+          "label": "children back in school",
+          "detail": "street-connected children in Rwanda, with daily meals and supplies",
+          "project": "rwanda-risings-progress"
+        }
+      ],
+      "note": "Rwanda Rising has worked alongside families in Nyamasheke District since 2009."
+    },
+    "focus-areas": {
+      "type": "focusAreas",
+      "eyebrow": "How we work",
+      "heading": "Local partners lead. We bring the *tools*.",
+      "text": "We work with local organizations that have “fire in the belly” for change in their own communities. They know their regions best and they are there for the long haul. We help plan the work, bring technical know-how and find the funding.",
+      "image": "photos/malawi/handwashing-station.jpg",
+      "imageAlt": "A woman in a blue top sets up a handwashing bucket with a tap on a green stand.",
+      "areas": [
+        {
+          "name": "Clean water",
+          "icon": "water",
+          "text": "Wells, tanks and filters that keep safe water flowing in villages, schools and clinics."
+        },
+        {
+          "name": "Sanitation",
+          "icon": "sanitation",
+          "text": "Durable, affordable latrines and community toilets, designed with local builders."
+        },
+        {
+          "name": "Hygiene",
+          "icon": "hygiene",
+          "text": "Handwashing, cleaning and menstrual health that protect patients, families and staff."
+        },
+        {
+          "name": "Food",
+          "icon": "food",
+          "text": "School meals, gardens and nutrition training for mothers of young children."
+        },
+        {
+          "name": "Education",
+          "icon": "school",
+          "text": "School fees, scholarships, and nursery and elementary schools that keep children learning."
+        },
+        {
+          "name": "Skills training",
+          "icon": "skills",
+          "text": "Business, trade and sewing skills that turn talent into a steady income."
+        }
+      ],
+      "link": {
+        "label": "More about what we do",
+        "href": "/what-we-do/"
+      }
+    },
+    "featured-story": {
+      "type": "featuredStory",
+      "eyebrow": "Featured story · Burundi",
+      "heading": "72 new entrepreneurs. *One graduation.*",
+      "text": "On January 30, 2026, cohorts 7, 8 and 9 of Street Business School graduated together in Gitega. Every one of the 72 participants completed the training — and every one launched a business of their own.",
+      "image": "photos/burundi/graduation-2026-wide.jpg",
+      "imageAlt": "Graduates of cohorts 7, 8 and 9 hold up their certificates at their graduation in Gitega, Burundi.",
+      "imagePosition": "50% 40%",
+      "stat": {
+        "value": 100,
+        "suffix": "%",
+        "label": "average increase in income within 12 months of graduation"
+      },
+      "outcomesHeading": "What changes for graduates",
+      "outcomes": [
+        "They start and sustain their own businesses",
+        "Household incomes increase",
+        "Families become more food secure",
+        "Graduates begin to create jobs for others",
+        "Children attend school"
+      ],
+      "link": {
+        "label": "Explore Street Business School, Burundi",
+        "href": "/thars/"
+      }
+    },
+    "where-we-work": {
+      "type": "whereWeWork",
+      "eyebrow": "Where we work",
+      "heading": "Four countries. *Seven programs.* One approach.",
+      "text": "From the hills of Gitega to the villages of Bihar, every program is led by people who live there."
+    },
+    "project-grid": {
+      "type": "projectGrid",
+      "eyebrow": "Our programs",
+      "heading": "The work, *program by program*",
+      "text": "Each program has its own local partner, its own goals and its own colour — just like the letters of our name."
+    },
+    "quote-band": {
+      "type": "quoteBand",
+      "quote": "As a pregnant woman about to deliver my baby, I had to walk a kilometre to fetch water for the labour ward as there was no water supply at the hospital. Now, thanks to STREAMS, we have lots of water, convenient places to wash hands, clean toilets, and more. We are so happy!",
+      "attribution": "A mother in Rumphi District, Malawi",
+      "context": "STREAMS keeps water, sanitation and hygiene working in health facilities.",
+      "link": {
+        "label": "Explore STREAMS, Malawi",
+        "href": "/streams/"
+      }
+    },
+    "giving-levels": {
+      "type": "givingLevels",
+      "eyebrow": "What your gift does",
+      "heading": "Your gift, *put to work*",
+      "text": "Every donation is used by local partners who know exactly where it will make the biggest difference.",
+      "cta": {
+        "label": "Choose how to give",
+        "href": "/donate/"
+      }
+    },
+    "story-list": {
+      "type": "storyList",
+      "eyebrow": "Latest stories",
+      "heading": "News from the field",
+      "count": 3,
+      "link": {
+        "label": "See all stories",
+        "href": "/stories/"
+      }
+    },
+    "trust-strip": {
+      "type": "trustStrip",
+      "heading": "Accountable, transparent and financially responsible.",
+      "partnersHeading": "Working alongside",
+      "partners": [
+        "THARS",
+        "Street Business School",
+        "Rwanda Rising",
+        "ACSD",
+        "Open Hands Education Trust",
+        "Friends Peace House",
+        "Rural Development Partners",
+        "DAMRA",
+        "Rumphi District Government",
+        "Rotary Clubs across Canada",
+        "Royal Roads University"
+      ]
+    },
+    "ways-to-help": {
+      "type": "waysToHelp",
+      "eyebrow": "Get involved",
+      "heading": "There’s more than one way to *transform*",
+      "text": "Give today, plan a lasting gift, lend your skills or rally your friends. Every kind of help counts.",
+      "items": [
+        {
+          "title": "Donate",
+          "text": "Give to the program of your choice, or wherever the need is greatest right now.",
+          "icon": "heart",
+          "link": {
+            "label": "Donate now",
+            "href": "/donate/"
+          }
+        },
+        {
+          "title": "Leave a legacy",
+          "text": "A gift in your will, of stock, or from an RRSP, RRIF or TFSA can change lives for generations.",
+          "icon": "gift",
+          "link": {
+            "label": "Email Carl about legacy gifts",
+            "href": "mailto:carl.monk@transforminternational.ca?subject=Legacy%20gift"
+          }
+        },
+        {
+          "title": "Volunteer",
+          "text": "Technical or admin support here in Canada, or helping a program abroad — there’s room for your skills.",
+          "icon": "hands",
+          "link": {
+            "label": "Email us about volunteering",
+            "href": "mailto:nancy.gilbert@transforminternational.org?subject=Volunteering"
+          }
+        },
+        {
+          "title": "Fundraise",
+          "text": "Share a campaign on Facebook, present to your Rotary Club, or introduce friends who want to make a difference.",
+          "icon": "megaphone",
+          "link": {
+            "label": "Email us about fundraising",
+            "href": "mailto:nancy.gilbert@transforminternational.org?subject=Fundraising"
+          }
+        }
+      ]
+    }
+  }
+}

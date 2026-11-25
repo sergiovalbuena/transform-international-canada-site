@@ -1,0 +1,140 @@
+---
+/**
+ * A friendly placeholder for pages that haven't been rebuilt yet. It always
+ * links to the matching page on the current site, so no link is a dead end.
+ */
+import { Image } from 'astro:assets';
+import Button from './Button.astro';
+import ProjectCard from './ProjectCard.astro';
+import { getProjects } from '../../lib/content';
+import { photo } from '../../lib/images';
+
+interface Props {
+  title: string;
+  description: string;
+  oldUrl?: string;
+}
+
+const { title, description, oldUrl } = Astro.props;
+const featured = (await getProjects()).slice(0, 3);
+const strip = ['photos/youth-trades/baker.jpg', 'photos/rwanda/boarding-graduates.jpg', 'photos/india/sewing-school.jpg'];
+---
+
+<section class="soon-hero" aria-labelledby="page-title">
+  <div class="container-site soon-grid">
+    <div class="soon-copy">
+      <p class="eyebrow">Coming to the new site</p>
+      <h1 id="page-title" class="heading-xl">{title}</h1>
+      <p class="lede">{description}</p>
+      <p class="soon-note">
+        We’re giving this page a fresh, brighter home. In the meantime, everything is still available on our current
+        website.
+      </p>
+      <div class="soon-actions">
+        {
+          oldUrl && (
+            <Button href={oldUrl} variant="primary" size="lg">
+              Read “{title}” on our current site
+            </Button>
+          )
+        }
+        <Button href="/donate/" variant="donate" size="lg" icon="heart">Donate</Button>
+      </div>
+    </div>
+    <ul class="soon-strip" aria-hidden="true">
+      {
+        strip.map((src, i) => (
+          <li style={`--i:${i}`}>
+            <Image src={photo(src)} alt="" widths={[240, 400]} sizes="(min-width: 64rem) 14vw, 30vw" />
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+  <div class="ribbon" aria-hidden="true"></div>
+</section>
+
+<section class="section band-sand" aria-labelledby="explore-title">
+  <div class="container-site">
+    <h2 id="explore-title" class="heading-md explore-title">Explore our programs</h2>
+    <ul class="explore-grid">
+      {
+        featured.map((project) => (
+          <li>
+            <ProjectCard project={project} />
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .soon-hero {
+    background:
+      radial-gradient(50rem 26rem at 90% 10%, rgb(242 196 107 / 0.35), transparent 70%),
+      var(--color-cream);
+  }
+  .soon-grid {
+    display: grid;
+    gap: 3rem;
+    align-items: center;
+    padding-block: clamp(4rem, 3rem + 5vw, 7rem);
+  }
+  .soon-copy {
+    display: grid;
+    gap: 1.25rem;
+    justify-items: start;
+  }
+  .soon-copy h1 {
+    max-width: 16ch;
+  }
+  .soon-note {
+    max-width: 36rem;
+    color: var(--color-ink-muted);
+  }
+  .soon-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.85rem;
+    margin-top: 0.5rem;
+  }
+  .soon-actions :global(.btn) {
+    white-space: normal;
+  }
+  .soon-strip {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+  }
+  .soon-strip li {
+    translate: 0 calc(var(--i) * 1.5rem - 1.5rem);
+  }
+  .soon-strip :global(img) {
+    width: 100%;
+    aspect-ratio: 3 / 5;
+    object-fit: cover;
+    border-radius: 999px;
+    box-shadow: var(--shadow-soft);
+  }
+  .explore-title {
+    margin-bottom: 2rem;
+  }
+  .explore-grid {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  }
+  .explore-grid li {
+    display: flex;
+  }
+  .explore-grid li > :global(*) {
+    flex: 1;
+  }
+  @media (min-width: 64rem) {
+    .soon-grid {
+      grid-template-columns: 1.3fr 1fr;
+      gap: 5rem;
+    }
+  }
+</style>

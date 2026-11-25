@@ -1,0 +1,593 @@
+---
+/**
+ * One page per program, at the same address as on the current site
+ * (projects/thars.md → /thars/). Programs marked `status: full` get the
+ * complete page; the others get a short preview that links back to the
+ * current site until their content is migrated.
+ */
+import { render } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ProjectHero from '../components/project/ProjectHero.astro';
+import StatsRow from '../components/project/StatsRow.astro';
+import GoalBar from '../components/project/GoalBar.astro';
+import Gallery from '../components/project/Gallery.astro';
+import Sections from '../components/project/Sections.astro';
+import { Picture } from 'astro:assets';
+import { photo } from '../lib/images';
+import GivingCards from '../components/ui/GivingCards.astro';
+import StoryCard from '../components/ui/StoryCard.astro';
+import Button from '../components/ui/Button.astro';
+import Icon from '../components/ui/Icon.astro';
+import { emphasize, getProjects, getPublishedLevels, getStories } from '../lib/content';
+import { heroPreload } from '../lib/hero';
+
+export async function getStaticPaths() {
+  const projects = await getProjects();
+  return projects.map((project) => ({ params: { project: project.id }, props: { project } }));
+}
+
+const { project } = Astro.props;
+const p = project.data;
+const full = p.status === 'full';
+/** Pages built from a `sections` list skip the fixed challenge → results layout. */
+const custom = full && Boolean(p.sections?.length);
+const { Content } = await render(project);
+const hasJourney = Boolean(project.body?.trim());
+const related = (await getStories()).filter((s) => s.data.project?.id === project.id).slice(0, 3);
+const preload = await heroPreload(p.image);
+const hasGifts = (await getPublishedLevels('program', project.id)).length > 0;
+---
+
+<BaseLayout
+  title={`${p.title}`}
+  description={`${p.summary} ${p.outcome}`}
+  image={p.image}
+  imageAlt={p.imageAlt}
+  preload={preload}
+>
+  <ProjectHero project={project} secondary={full && !custom ? { label: 'See the results', href: '#results' } : undefined} />
+  <StatsRow stats={p.stats} accent={p.accent} />
+
+  {
+    custom ? (
+      <>
+        <Sections sections={p.sections!} projectId={project.id} shortTitle={p.shortTitle} zeffyUrl={p.zeffyUrl} accent={p.accent} />
+        {p.goal && <GoalBar goal={p.goal} zeffyUrl={p.zeffyUrl} accent={p.accent} />}
+      </>
+    ) : full ? (
+      <>
+        {/* ---- The challenge ---- */}
+        {p.challenge && (
+          <section class="section band-cream" aria-labelledby="challenge-title">
+            <div class="container-site split">
+              <div class="split-head" data-reveal>
+                <p class="eyebrow">The challenge</p>
+                <h2 id="challenge-title" class="heading-md" set:html={emphasize(p.headings.challenge)} />
+              </div>
+              <div class="prose-site split-body" data-reveal="2">
+                <p class="lede">{p.challenge}</p>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ---- What we do ---- */}
+        {p.approach.length > 0 && (
+          <section class="section band-sand" aria-labelledby="approach-title">
+            <div class="container-site">
+              <div class="section-head" data-reveal>
+                <p class="eyebrow">What we do</p>
+                <h2 id="approach-title" class="heading-md" set:html={emphasize(p.headings.approach)} />
+              </div>
+              <ol class="steps">
+                {p.approach.map((step, i) => (
+                  <li class="step" data-reveal={i + 1}>
+                    <span class="step-num" aria-hidden="true">
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                    <h3 class="step-title">{step.title}</h3>
+                    <p>{step.text}</p>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </section>
+        )}
+
+        {/* ---- Results ---- */}
+        <section id="results" class="section band-green" aria-labelledby="results-title">
+          <div class="container-site results">
+            <div data-reveal>
+              <p class="eyebrow">Results</p>
+              <h2 id="results-title" class="heading-md" set:html={emphasize(p.headings.results)} />
+              <ul class="result-list">
+                {p.results.map((r) => (
+                  <li>
+                    <span class="result-check">
+                      <Icon name="check" size={18} />
+                    </span>
+                    {r}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            {p.quote && (
+              <figure class="result-quote" data-reveal="2">
+                <Icon name="quote" size={44} class="q-mark" />
+                <blockquote>
+                  <p>{p.quote.text}</p>
+                </blockquote>
+                <figcaption>{p.quote.attribution}</figcaption>
+              </figure>
+            )}
+          </div>
+        </section>
+
+        {/* ---- Featured person ---- */}
+        {p.person && (
+          <section class="section band-cream" aria-labelledby="person-title">
+            <div class="container-site person" style={`--accent: var(--color-${p.accent}); --accent-on: var(--color-${p.accent}-on)`}>
+              {p.person.highlight && (
+                <div class="person-badge" data-reveal aria-hidden="true">
+                  <span class="person-number">{p.person.highlight.value}</span>
+                  <span class="person-badge-label">{p.person.highlight.label}</span>
+                </div>
+              )}
+              <div class="person-body" data-reveal="2">
+                <p class="eyebrow">Graduate story</p>
+                <h2 id="person-title" class="heading-lg person-headline">{p.person.headline}</h2>
+                <p class="person-name">
+                  <strong>{p.person.name}</strong> · {p.person.role}
+                </p>
+                <p class="lede person-story">{p.person.story}</p>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {p.gallery.length > 0 && <Gallery items={p.gallery} title={p.headings.gallery} />}
+
+        {/* ---- What your gift does (levels from giving.json with "program" in showOn) ---- */}
+        {hasGifts && (
+          <section class="section band-cream gifts-section" aria-labelledby="gifts-title">
+            <div class="container-site">
+              <div class="section-head" data-reveal>
+                <p class="eyebrow">Give to {p.shortTitle}</p>
+                <h2 id="gifts-title" class="heading-md" set:html={emphasize(p.gifts.heading)} />
+                {p.gifts.text && <p class="lede">{p.gifts.text}</p>}
+              </div>
+              <GivingCards where="program" project={project.id} linkToZeffy />
+              {p.gifts.note && (
+                <p class="gifts-note" data-reveal>
+                  {p.gifts.note}
+                </p>
+              )}
+            </div>
+          </section>
+        )}
+
+        {p.goal && <GoalBar goal={p.goal} zeffyUrl={p.zeffyUrl} accent={p.accent} />}
+
+      </>
+    ) : (
+      <>
+        {/* ---- Preview for programs not yet migrated ---- */}
+        {p.quote && (
+          <section class="section band-green" aria-label="In their words">
+            <div class="container-site">
+              <figure class="result-quote preview-quote" data-reveal>
+                <Icon name="quote" size={44} class="q-mark" />
+                <blockquote>
+                  <p>{p.quote.text}</p>
+                </blockquote>
+                <figcaption>{p.quote.attribution}</figcaption>
+              </figure>
+            </div>
+          </section>
+        )}
+        {p.goal && <GoalBar goal={p.goal} zeffyUrl={p.zeffyUrl} accent={p.accent} />}
+        <section class="section band-sand" aria-labelledby="soon-title">
+          <div class="container-site soon" data-reveal>
+            <span class="soon-icon">
+              <Icon name="document" size={30} />
+            </span>
+            <div>
+              <h2 id="soon-title" class="heading-sm">The full story of {p.shortTitle} is on its way</h2>
+              <p>
+                We’re moving our website to a brighter new home. Until this page is ready, you can read the complete
+                history, photos and updates on our current site.
+              </p>
+              <div class="soon-actions">
+                {p.oldUrl && (
+                  <Button href={p.oldUrl} variant="outline">
+                    Read about {p.shortTitle} on our current site
+                  </Button>
+                )}
+                <Button href={p.zeffyUrl} variant="donate" icon="heart">
+                  Support {p.shortTitle}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </>
+    )
+  }
+
+  {/* ---- Long history, folded away so the page stays scannable ---- */}
+  {
+    full && hasJourney && (
+      <section class="section band-sand journey-section" aria-labelledby="journey-title">
+        <div class="container-site">
+          <details class="journey">
+            <summary>
+              <span>
+                <span class="eyebrow">The full story</span>
+                <span id="journey-title" class="heading-md journey-title" set:html={emphasize(p.headings.journey)} />
+              </span>
+              <span class="journey-toggle" aria-hidden="true">
+                <Icon name="chevron" size={28} />
+              </span>
+            </summary>
+            <div class="prose-site journey-body">
+              {p.journeyImage && (
+                <figure class="journey-figure">
+                  <Picture
+                    src={photo(p.journeyImage.image)}
+                    alt={p.journeyImage.alt}
+                    formats={['avif', 'webp']}
+                    widths={[480, 720, 960, 1280]}
+                    sizes="(min-width: 64rem) 44rem, 100vw"
+                    style={`object-position: ${p.journeyImage.position}`}
+                  />
+                  {p.journeyImage.caption && <figcaption>{p.journeyImage.caption}</figcaption>}
+                </figure>
+              )}
+              <Content />
+            </div>
+          </details>
+        </div>
+      </section>
+    )
+  }
+  {
+    related.length > 0 && (
+      <section class="section band-cream" aria-labelledby="related-title">
+        <div class="container-site">
+          <p class="eyebrow">Stories</p>
+          <h2 id="related-title" class="heading-md related-title">
+            More from {p.shortTitle}
+          </h2>
+          <ul class="related-grid">
+            {related.map((story, i) => (
+              <li data-reveal={i + 1}>
+                <StoryCard story={story} />
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    )
+  }
+
+  <section class="band-green support" aria-labelledby="support-title">
+    <div class="container-site support-inner" data-reveal>
+      <h2 id="support-title" class="heading-md">Help {p.shortTitle} <em>reach more people</em></h2>
+      <p>Donations over $25 receive an official Canadian tax receipt.</p>
+      <div class="support-actions">
+        <Button href={p.zeffyUrl} variant="donate" size="lg" icon="heart">Support this program</Button>
+        <Button href="/donate/" variant="outline-light" size="lg">Other ways to give</Button>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .split {
+    display: grid;
+    gap: 2rem 5rem;
+  }
+  .split-head,
+  .section-head {
+    display: grid;
+    gap: 1rem;
+    align-content: start;
+  }
+  .section-head {
+    max-width: 44rem;
+    margin-bottom: clamp(2.5rem, 2rem + 3vw, 3.5rem);
+  }
+  /* Body text is the same size in every section type (see Sections.astro). */
+  .split-body .lede {
+    color: var(--color-ink);
+    font-size: var(--text-step-0);
+    line-height: 1.65;
+  }
+
+  .steps {
+    display: grid;
+    gap: 1.25rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+    counter-reset: step;
+  }
+  .step {
+    display: grid;
+    gap: 0.6rem;
+    align-content: start;
+    padding: 1.75rem 1.6rem;
+    border-radius: var(--radius-lg);
+    background: var(--color-paper);
+    box-shadow: var(--shadow-soft);
+  }
+  .step-num {
+    font-family: var(--font-display);
+    font-variation-settings: 'SOFT' 100;
+    font-size: 2.5rem;
+    font-weight: 600;
+    line-height: 1;
+    color: var(--color-gold-700);
+  }
+  .step-title {
+    font-size: var(--text-step-2);
+  }
+  .step p {
+    color: var(--color-ink-muted);
+    font-size: 0.975rem;
+    line-height: 1.55;
+  }
+
+  .results {
+    display: grid;
+    gap: 3.5rem;
+    align-items: center;
+  }
+  .results > div {
+    display: grid;
+    gap: 1rem;
+  }
+  .result-list {
+    display: grid;
+    gap: 0.9rem;
+    margin-top: 1rem;
+  }
+  .result-list li {
+    display: flex;
+    gap: 0.85rem;
+    align-items: center;
+    font-size: var(--text-step-1);
+    font-weight: 500;
+  }
+  .result-check {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    background: var(--color-gold-300);
+    color: var(--color-green-950);
+  }
+  .result-quote {
+    display: grid;
+    gap: 1.25rem;
+    padding: 2.25rem;
+    border-radius: var(--radius-lg);
+    background: rgb(251 247 240 / 0.07);
+    border: 1px solid rgb(251 247 240 / 0.16);
+  }
+  .result-quote :global(.q-mark) {
+    color: var(--color-gold-300);
+  }
+  .result-quote blockquote {
+    font-family: var(--font-display);
+    font-variation-settings: 'SOFT' 100;
+    font-size: var(--text-step-2);
+    line-height: 1.35;
+  }
+  .result-quote figcaption {
+    padding-left: 1rem;
+    border-left: 4px solid var(--color-gold-300);
+    font-weight: 600;
+  }
+  .preview-quote {
+    max-width: 56rem;
+  }
+  .preview-quote blockquote {
+    font-size: var(--text-step-3);
+  }
+
+  .person {
+    display: grid;
+    gap: 2.5rem 5rem;
+    align-items: center;
+  }
+  .person-badge {
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    width: min(100%, 20rem);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 30% 25%, rgb(255 255 255 / 0.35), transparent 55%), var(--accent);
+    color: var(--accent-on);
+    box-shadow: var(--shadow-lift);
+  }
+  .person-number {
+    font-family: var(--font-display);
+    font-variation-settings: 'SOFT' 100;
+    font-size: clamp(6rem, 4rem + 8vw, 9rem);
+    font-weight: 600;
+    line-height: 0.9;
+  }
+  .person-badge-label {
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .person-body {
+    display: grid;
+    gap: 1rem;
+  }
+  .person-headline {
+    max-width: 16ch;
+  }
+  .person-name {
+    color: var(--color-ink-muted);
+  }
+  .person-story {
+    color: var(--color-ink);
+    font-size: var(--text-step-0);
+    line-height: 1.65;
+  }
+
+  .journey-section {
+    padding-block: clamp(3rem, 2rem + 4vw, 5rem);
+  }
+  .journey {
+    border-radius: var(--radius-lg);
+    background: var(--color-paper);
+    box-shadow: var(--shadow-soft);
+  }
+  .journey summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding: 1.75rem 2rem;
+    cursor: pointer;
+    list-style: none;
+  }
+  .journey summary::-webkit-details-marker {
+    display: none;
+  }
+  .journey summary > span:first-child {
+    display: grid;
+    gap: 0.75rem;
+  }
+  .journey-title {
+    display: block;
+    font-family: var(--font-display);
+    font-variation-settings: 'SOFT' 100;
+    font-weight: 560;
+    line-height: 1.1;
+  }
+  .journey-toggle {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 3.25rem;
+    height: 3.25rem;
+    border-radius: 50%;
+    background: var(--color-sand);
+    transition: transform var(--duration-base) var(--ease-out);
+  }
+  .journey[open] .journey-toggle {
+    transform: rotate(180deg);
+  }
+  .journey-body {
+    padding: 0 2rem 2.25rem;
+  }
+  .journey-figure {
+    display: grid;
+    gap: 0.6rem;
+    max-width: 44rem;
+    margin-bottom: 1.5rem;
+  }
+  .journey-figure :global(img) {
+    width: 100%;
+    aspect-ratio: 3 / 2;
+    object-fit: cover;
+    border-radius: var(--radius-md);
+  }
+  .journey-figure figcaption {
+    font-size: 0.9rem;
+    color: var(--color-ink-muted);
+  }
+  .journey-body > :global(p) {
+    padding-left: 1.25rem;
+    border-left: 3px solid var(--color-gold-300);
+  }
+
+  /* The goal that follows sits on the same cream band, so close the gap. */
+  .gifts-section:has(+ :global(.goal)) {
+    padding-bottom: 0;
+  }
+  .gifts-note {
+    max-width: 44rem;
+    margin-top: 2rem;
+    font-size: 1.0625rem;
+    color: var(--color-ink-muted);
+  }
+  .related-title {
+    margin: 1rem 0 2.5rem;
+  }
+  .related-grid {
+    display: grid;
+    gap: 2.5rem 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  }
+
+  .soon {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    align-items: flex-start;
+  }
+  .soon > div {
+    display: grid;
+    gap: 1rem;
+    flex: 1 1 20rem;
+    max-width: 48rem;
+  }
+  .soon-icon {
+    display: grid;
+    place-items: center;
+    width: 4rem;
+    height: 4rem;
+    border-radius: 50%;
+    background: var(--color-paper);
+    color: var(--color-green-700);
+  }
+  .soon-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+  }
+  .soon-actions :global(.btn) {
+    white-space: normal;
+    text-align: left;
+  }
+
+  .support {
+    padding-block: clamp(4rem, 3rem + 4vw, 6.5rem);
+  }
+  .support-inner {
+    display: grid;
+    gap: 1rem;
+    justify-items: start;
+  }
+  .support-inner p {
+    color: rgb(251 247 240 / 0.84);
+  }
+  .support-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.85rem;
+    margin-top: 0.75rem;
+  }
+
+  @media (min-width: 64rem) {
+    .split {
+      grid-template-columns: 0.9fr 1.1fr;
+    }
+    .results {
+      grid-template-columns: 1fr 1fr;
+      gap: 5rem;
+    }
+    .person {
+      grid-template-columns: 20rem 1fr;
+    }
+  }
+</style>

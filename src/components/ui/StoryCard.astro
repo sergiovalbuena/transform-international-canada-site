@@ -1,0 +1,118 @@
+---
+import { Image } from 'astro:assets';
+import type { CollectionEntry } from 'astro:content';
+import Icon from './Icon.astro';
+import { formatDate, storyHref } from '../../lib/content';
+import { photo } from '../../lib/images';
+
+interface Props {
+  story: CollectionEntry<'stories'>;
+  headingLevel?: 'h2' | 'h3';
+}
+
+const { story, headingLevel: Heading = 'h3' } = Astro.props;
+const s = story.data;
+const href = storyHref(story);
+const external = /^https?:\/\//.test(href);
+---
+
+<article class="story group">
+  <div class="story-media">
+    <Image
+      src={photo(s.image)}
+      alt={s.imageAlt}
+      widths={[400, 640, 800]}
+      sizes="(min-width: 64rem) 30vw, (min-width: 40rem) 50vw, 100vw"
+      class="story-img"
+      style={`object-position: ${s.imagePosition}`}
+    />
+  </div>
+  <div class="story-body">
+    <time datetime={s.date.toISOString().slice(0, 10)} class="story-date">{s.dateLabel ?? formatDate(s.date)}</time>
+    <Heading class="story-title">
+      <a href={href} class="story-link" rel={external ? 'noopener' : undefined}>
+        {s.title}
+      </a>
+    </Heading>
+    <p class="story-excerpt">{s.excerpt}</p>
+    <span class="link-arrow story-more" aria-hidden="true">
+      Read the story
+      <Icon name="arrow" size={20} />
+    </span>
+  </div>
+</article>
+
+<style>
+  .story {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  .story-media {
+    overflow: hidden;
+    aspect-ratio: 4 / 3;
+    border-radius: var(--radius-lg);
+  }
+  .story-media :global(.story-img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 900ms var(--ease-out);
+  }
+  .story-body {
+    display: grid;
+    gap: 0.6rem;
+    align-content: start;
+    flex: 1;
+    padding: 1.4rem 0.25rem 0;
+  }
+  .story-date {
+    font-size: var(--text-step--1);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-green-700);
+  }
+  .story-title {
+    font-size: var(--text-step-2);
+  }
+  .story-link {
+    text-decoration: none;
+    background-image: linear-gradient(var(--color-donate), var(--color-donate));
+    background-size: 0 3px;
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    transition: background-size var(--duration-base) var(--ease-out);
+  }
+  /* The whole card is clickable through the title link. */
+  .story-link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+  .story-excerpt {
+    color: var(--color-ink-muted);
+    font-size: 0.975rem;
+    line-height: 1.55;
+  }
+  .story-more {
+    margin-top: 0.4rem;
+  }
+  @media (hover: hover) {
+    .story:hover .story-link {
+      background-size: 100% 3px;
+    }
+    .story:hover .story-media :global(.story-img) {
+      transform: scale(1.05);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .story-media :global(.story-img) {
+      transition: none;
+    }
+    .story:hover .story-media :global(.story-img) {
+      transform: none;
+    }
+  }
+</style>

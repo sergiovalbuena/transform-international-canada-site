@@ -1,0 +1,58 @@
+---
+import type { BlockOf } from '../../content.config';
+import StoryCard from '../ui/StoryCard.astro';
+import Icon from '../ui/Icon.astro';
+import { emphasize, getStories } from '../../lib/content';
+
+type Props = BlockOf<'storyList'>;
+const { eyebrow, heading, count, link } = Astro.props;
+const stories = (await getStories()).slice(0, count);
+---
+
+<section class="section band-sand stories" aria-labelledby="stories-title">
+  <div class="container-site">
+    <div class="stories-head" data-reveal>
+      <div>
+        <p class="eyebrow">{eyebrow}</p>
+        <h2 id="stories-title" class="heading-lg" set:html={emphasize(heading)} />
+      </div>
+      {
+        link && (
+          <a href={link.href} class="link-arrow">
+            {link.label}
+            <Icon name="arrow" size={20} />
+          </a>
+        )
+      }
+    </div>
+    <ul class="story-grid">
+      {
+        stories.map((story, i) => (
+          <li data-reveal={i + 1}>
+            <StoryCard story={story} />
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .stories-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    justify-content: space-between;
+    gap: 1.25rem 2rem;
+    margin-bottom: clamp(2.5rem, 2rem + 3vw, 3.5rem);
+  }
+  .stories-head > div {
+    display: grid;
+    gap: 1rem;
+  }
+  .story-grid {
+    display: grid;
+    gap: 2.75rem 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  }
+</style>

@@ -1,0 +1,265 @@
+---
+import type { BlockOf } from '../../content.config';
+import map from '../../data/map.json';
+import { emphasize, getProjects, projectHref } from '../../lib/content';
+
+type Props = BlockOf<'whereWeWork'>;
+const { eyebrow, heading, text } = Astro.props;
+
+const projects = await getProjects();
+const countryNames = { burundi: 'Burundi', rwanda: 'Rwanda', malawi: 'Malawi', india: 'India' } as const;
+type Country = keyof typeof countryNames;
+
+// Group the programs by country, in program order.
+const groups = (Object.keys(countryNames) as Country[])
+  .map((country) => ({
+    country,
+    name: countryNames[country],
+    projects: projects.filter((p) => p.data.country === country),
+  }))
+  .filter((g) => g.projects.length)
+  .sort((a, b) => a.projects[0].data.order - b.projects[0].data.order);
+
+// Where each label sits, relative to its marker (viewBox units). Rwanda and
+// Burundi are neighbours, so their labels fan out to the left.
+const labelAt: Record<Country, { x: number; y: number; anchor: 'start' | 'end' | 'middle' }> = {
+  rwanda: { x: -120, y: -70, anchor: 'end' },
+  burundi: { x: -120, y: 60, anchor: 'end' },
+  malawi: { x: 95, y: 70, anchor: 'start' },
+  india: { x: -135, y: 40, anchor: 'end' },
+};
+const markers = map.markers as Record<Country, [number, number]>;
+---
+
+<section class="section band-cream where" aria-labelledby="where-title">
+  <div class="container-site where-grid">
+    <div class="where-copy" data-reveal>
+      <p class="eyebrow">{eyebrow}</p>
+      <h2 id="where-title" class="heading-lg" set:html={emphasize(heading)} />
+      <p class="lede">{text}</p>
+
+      <ul class="legend">
+        {
+          groups.map((g) => (
+            <li style={`--tone: var(--color-${g.country})`}>
+              <span class="legend-country">
+                <span class="legend-dot" aria-hidden="true" />
+                {g.name}
+              </span>
+              <ul class="legend-projects">
+                {g.projects.map((p) => (
+                  <li>
+                    <a href={projectHref(p.id)} class="link-underline">
+                      {p.data.shortTitle}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+
+    <div class="map-wrap" data-reveal="2">
+      <svg
+        class="map"
+        viewBox={map.viewBox}
+        role="group"
+        aria-label="Map of Africa and India showing where our programs are: Burundi, Rwanda, Malawi and India"
+      >
+        <path d={map.land} class="land" />
+        {map.countries.map((c) => <path d={c.d} class="country" style={`fill: var(--color-${c.id})`} />)}
+        {
+          groups.map((g, i) => {
+            const [mx, my] = markers[g.country];
+            const label = labelAt[g.country];
+            const secondLine = g.projects.length === 1 ? g.projects[0].data.shortTitle : `${g.projects.length} programs`;
+            const lx = mx + label.x;
+            const ly = my + label.y;
+            return (
+              <a
+                href={projectHref(g.projects[0].id)}
+                class="marker"
+                style={`--tone: var(--color-${g.country}); --delay: ${i * 0.6}s`}
+              >
+                {/* Names the link when the labels are hidden on small screens. */}
+                <title>{`${g.name}: ${g.projects.map((p) => p.data.shortTitle).join(', ')}`}</title>
+                <polyline points={`${mx},${my} ${lx + (label.anchor === 'end' ? 12 : -12)},${ly - 8}`} class="leader" />
+                <circle cx={mx} cy={my} r="16" class="pulse" />
+                <circle cx={mx} cy={my} r="7.5" class="dot" />
+                <text x={lx} y={ly} text-anchor={label.anchor} class="label-country">
+                  {g.name}
+                </text>
+                <text x={lx} y={ly + 26} text-anchor={label.anchor} class="label-programs">
+                  {secondLine}
+                </text>
+              </a>
+            );
+          })
+        }
+      </svg>
+      <p class="map-note">Simplified map. Markers show where our partners work.</p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .where-grid {
+    display: grid;
+    gap: 3rem;
+    align-items: center;
+  }
+  .where-copy {
+    display: grid;
+    gap: 1.25rem;
+    align-content: start;
+  }
+  .legend {
+    display: grid;
+    gap: 1.1rem;
+    margin-top: 1rem;
+  }
+  .legend > li {
+    display: grid;
+    grid-template-columns: 8rem 1fr;
+    gap: 0.25rem 1rem;
+    padding-bottom: 1.1rem;
+    border-bottom: 1px solid var(--color-line);
+  }
+  .legend-country {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: var(--font-display);
+    font-variation-settings: 'SOFT' 100;
+    font-size: var(--text-step-1);
+    font-weight: 600;
+  }
+  .legend-dot {
+    width: 0.85rem;
+    height: 0.85rem;
+    border-radius: 50%;
+    background: var(--tone);
+    box-shadow: 0 0 0 4px color-mix(in oklab, var(--tone) 22%, transparent);
+  }
+  .legend-projects {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 1.1rem;
+    align-items: center;
+    font-weight: 600;
+  }
+  .legend-projects a {
+    color: var(--color-ink);
+  }
+
+  .map-wrap {
+    position: relative;
+  }
+  .map {
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+  .land {
+    fill: var(--color-sand-deep);
+    stroke: var(--color-cream);
+    stroke-width: 1;
+  }
+  .country {
+    stroke: var(--color-cream);
+    stroke-width: 1;
+  }
+  .leader {
+    fill: none;
+    stroke: var(--color-ink);
+    stroke-width: 1.5;
+    stroke-dasharray: 3 4;
+    opacity: 0.55;
+  }
+  .dot {
+    fill: var(--tone);
+    stroke: var(--color-cream);
+    stroke-width: 3;
+  }
+  .pulse {
+    fill: var(--tone);
+    opacity: 0.25;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  .label-country {
+    font-family: var(--font-display);
+    font-variation-settings: 'SOFT' 100;
+    font-size: 30px;
+    font-weight: 600;
+    fill: var(--color-ink);
+  }
+  .label-programs {
+    font-family: var(--font-sans);
+    font-size: 21px;
+    font-weight: 600;
+    fill: var(--color-ink-muted);
+  }
+  .marker {
+    cursor: pointer;
+    outline: none;
+  }
+  .marker:hover .label-country,
+  .marker:focus-visible .label-country {
+    fill: var(--color-green-700);
+    text-decoration: underline;
+  }
+  .marker:focus-visible .dot {
+    stroke: var(--color-ink);
+    stroke-width: 4;
+  }
+  .marker:hover .dot,
+  .marker:focus-visible .dot {
+    r: 10;
+  }
+  /* On small screens the legend beside the map names every place, so the
+     map keeps only its markers. */
+  @media (max-width: 40rem) {
+    .label-country,
+    .label-programs,
+    .leader {
+      display: none;
+    }
+  }
+  .map-note {
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--color-ink-muted);
+    text-align: right;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .pulse {
+      animation: pulse 2.8s var(--ease-out) 3;
+      animation-delay: var(--delay);
+    }
+    .dot {
+      transition: r var(--duration-base) var(--ease-out);
+    }
+  }
+  @keyframes pulse {
+    0% {
+      transform: scale(0.6);
+      opacity: 0.45;
+    }
+    80%,
+    100% {
+      transform: scale(2.2);
+      opacity: 0;
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .where-grid {
+      grid-template-columns: 0.85fr 1.15fr;
+      gap: 4rem;
+    }
+  }
+</style>

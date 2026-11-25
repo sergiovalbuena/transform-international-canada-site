@@ -1,0 +1,216 @@
+---
+import { Picture } from 'astro:assets';
+import type { BlockOf } from '../../content.config';
+import Button from '../ui/Button.astro';
+import Icon from '../ui/Icon.astro';
+import { photo } from '../../lib/images';
+import { HERO_WIDTHS } from '../../lib/hero';
+
+type Props = BlockOf<'hero'>;
+const { eyebrow, headline, text, image, imageAlt, imagePosition, caption, primary, secondary } = Astro.props;
+
+// Split the headline into words so each can rise in turn (CSS only).
+// Words wrapped in *asterisks* in the content file are emphasized.
+const words = headline
+  .split(/(\*[^*]+\*)/)
+  .flatMap((part) => {
+    const em = part.startsWith('*');
+    return part
+      .replace(/\*/g, '')
+      .split(' ')
+      .filter(Boolean)
+      .map((text) => ({ text, em }));
+  });
+---
+
+<section class="hero" aria-labelledby="hero-title">
+  <div class="hero-media">
+    <Picture
+      src={photo(image)}
+      alt={imageAlt}
+      formats={['avif', 'webp']}
+      widths={HERO_WIDTHS}
+      sizes="100vw"
+      priority
+      class="hero-img"
+      style={`object-position: ${imagePosition}`}
+    />
+  </div>
+  <div class="hero-shade" aria-hidden="true"></div>
+
+  <div class="container-site hero-content">
+    <p class="hero-eyebrow">{eyebrow}</p>
+    <h1 id="hero-title" class="hero-title">
+      {
+        words.map((word, i) => (
+          <>
+            <span class="word" style={`--i:${i}`}>
+              {word.em ? <em>{word.text}</em> : word.text}
+            </span>{' '}
+          </>
+        ))
+      }
+    </h1>
+    <p class="hero-text">{text}</p>
+    <div class="hero-actions">
+      <Button href={primary.href} variant="outline-light" size="lg" icon="arrow-down">{primary.label}</Button>
+      <Button href={secondary.href} variant="donate" size="lg" icon="heart">{secondary.label}</Button>
+    </div>
+  </div>
+
+  {
+    caption && (
+      <p class="hero-caption">
+        <Icon name="pin" size={16} />
+        {caption}
+      </p>
+    )
+  }
+  <div class="ribbon hero-ribbon" aria-hidden="true"></div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    display: grid;
+    align-items: end;
+    min-height: clamp(36rem, 88svh, 52rem);
+    overflow: hidden;
+    isolation: isolate;
+    color: var(--color-cream);
+    background: var(--color-green-900);
+  }
+  .hero-media,
+  .hero-shade {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+  }
+  .hero-media :global(picture),
+  .hero-media :global(img) {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  .hero-media :global(img) {
+    object-fit: cover;
+    max-width: none;
+  }
+  /* Legibility: a warm, deep-green wash from the bottom-left, clear elsewhere. */
+  .hero-shade {
+    background:
+      linear-gradient(to top, rgb(8 43 23 / 0.92) 0%, rgb(8 43 23 / 0.55) 38%, rgb(8 43 23 / 0) 70%),
+      linear-gradient(to right, rgb(8 43 23 / 0.55) 0%, rgb(8 43 23 / 0) 60%);
+  }
+
+  .hero-content {
+    padding-block: 7rem 4.5rem;
+  }
+  .hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 1.25rem;
+    padding: 0.4rem 0.9rem 0.4rem 0.5rem;
+    border-radius: var(--radius-pill);
+    background: rgb(251 247 240 / 0.14);
+    backdrop-filter: blur(8px);
+    font-size: var(--text-step--1);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .hero-eyebrow::before {
+    content: '';
+    width: 2.25rem;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--ribbon);
+  }
+  .hero-title {
+    max-width: 15ch;
+    font-size: var(--text-step-6);
+    font-weight: 580;
+    line-height: 1;
+    letter-spacing: -0.025em;
+    text-shadow: 0 2px 30px rgb(8 43 23 / 0.35);
+  }
+  .hero-title em {
+    color: var(--color-gold-300);
+    font-weight: 500;
+  }
+  .word {
+    display: inline-block;
+  }
+  .hero-text {
+    max-width: 36rem;
+    margin-top: 1.5rem;
+    font-size: var(--text-step-1);
+    line-height: 1.5;
+    color: rgb(251 247 240 / 0.92);
+  }
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.85rem;
+    margin-top: 2.25rem;
+  }
+
+  .hero-caption {
+    position: absolute;
+    right: var(--space-gutter);
+    bottom: 1.75rem;
+    display: none;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    color: rgb(251 247 240 / 0.85);
+  }
+  .hero-ribbon {
+    position: absolute;
+    inset: auto 0 0 0;
+  }
+
+  @media (min-width: 48rem) {
+    .hero-caption {
+      display: inline-flex;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    /* A slow, gentle zoom on the photo. Transforms never shift the layout. */
+    .hero-media :global(img) {
+      animation: hero-zoom 24s var(--ease-out) both;
+    }
+    .word {
+      animation: word-rise 900ms var(--ease-out) both;
+      animation-delay: calc(120ms + var(--i) * 55ms);
+    }
+    .hero-text,
+    .hero-actions {
+      animation: word-rise 900ms var(--ease-out) both;
+      animation-delay: 650ms;
+    }
+    .hero-actions {
+      animation-delay: 780ms;
+    }
+  }
+  @keyframes hero-zoom {
+    from {
+      transform: scale(1.12);
+    }
+    to {
+      transform: scale(1);
+    }
+  }
+  @keyframes word-rise {
+    from {
+      opacity: 0;
+      transform: translateY(0.45em);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+</style>

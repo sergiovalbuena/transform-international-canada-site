@@ -1,0 +1,235 @@
+---
+import { Image } from 'astro:assets';
+import logo from '../../assets/logo/transform-logo-ca-cropped.png';
+import Icon from '../ui/Icon.astro';
+import Button from '../ui/Button.astro';
+import { getSite } from '../../lib/content';
+
+const site = await getSite();
+const year = new Date().getFullYear();
+
+// Menus with sub-pages become footer columns; single links (like Stories)
+// join the last column so no column is left with one item.
+const columns = site.nav.filter((item) => item.children.length).map((item) => ({ ...item, links: [...item.children] }));
+const singles = site.nav.filter((item) => !item.children.length);
+columns.at(-1)?.links.push(...singles.map(({ label, href }) => ({ label, href })));
+---
+
+<footer class="site-footer band-ink">
+  <div class="ribbon" aria-hidden="true"></div>
+  <div class="container-site footer-grid">
+    <div class="footer-brand">
+      <!-- The logo sits on a cream card so its colours stay exactly as designed. -->
+      <a href="/" class="footer-logo" aria-label={`${site.name} — home`}>
+        <Image src={logo} alt="" width={220} height={54} />
+      </a>
+      <p class="footer-mission">{site.footer.mission}</p>
+      <Button href={site.donate.href} variant="donate" icon="heart">Donate today</Button>
+    </div>
+
+    {
+      columns.map((item) => (
+        <nav class="footer-col" aria-label={item.label}>
+          <h2 class="footer-heading">{item.label}</h2>
+          <ul>
+            {item.links.map((child) => (
+              <li>
+                <a href={child.href} class="footer-link">
+                  {child.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      ))
+    }
+
+    <div class="footer-col footer-contact">
+      <h2 class="footer-heading">Contact</h2>
+      <ul>
+        <li>
+          <Icon name="mail" size={18} />
+          <a href={`mailto:${site.contact.general}`} class="footer-link">{site.contact.general}</a>
+        </li>
+        <li>
+          <Icon name="heart" size={18} />
+          <span>
+            Donations: <a href={`mailto:${site.contact.donations}`} class="footer-link">{site.contact.donations}</a>
+          </span>
+        </li>
+        <li>
+          <Icon name="phone" size={18} />
+          <a href={`tel:${site.contact.phone.replace(/\s/g, '')}`} class="footer-link">{site.contact.phone}</a>
+        </li>
+        <li>
+          <Icon name="pin" size={18} />
+          <span>{site.contact.address}</span>
+        </li>
+      </ul>
+      <ul class="social">
+        {
+          site.social.map((s) => (
+            <li>
+              <a href={s.href} class="social-link" rel="noopener">
+                <Icon name="facebook" size={22} />
+                <span>
+                  {s.label}
+                  <span class="visually-hidden"> (opens Facebook)</span>
+                </span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </div>
+
+  <div class="container-site footer-legal">
+    <p>
+      <strong>{site.legalName}</strong> · Canadian registered charity{' '}
+      <span class="nowrap">#{site.charity.registrationNumber}</span>
+    </p>
+    <p>{site.footer.taxReceipt}</p>
+    <p>© {year} {site.legalName}</p>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    margin-top: auto;
+  }
+  .footer-grid {
+    display: grid;
+    gap: 2.5rem 2rem;
+    padding-block: clamp(3.5rem, 2.5rem + 4vw, 6rem) 3rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .footer-brand {
+    grid-column: 1 / -1;
+    display: grid;
+    gap: 1.25rem;
+    justify-items: start;
+    max-width: 26rem;
+  }
+  .footer-logo {
+    display: block;
+    padding: 0.9rem 1.1rem;
+    border-radius: var(--radius-md);
+    background: var(--color-cream);
+  }
+  .footer-logo img {
+    width: 180px;
+    height: auto;
+  }
+  .footer-mission {
+    color: rgb(251 247 240 / 0.8);
+  }
+  .footer-heading {
+    margin-bottom: 1rem;
+    font-family: var(--font-sans);
+    font-size: var(--text-step--1);
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-gold-300);
+  }
+  .footer-col ul {
+    display: grid;
+    gap: 0.55rem;
+  }
+  .footer-link {
+    color: rgb(251 247 240 / 0.86);
+    text-decoration: none;
+    font-size: 0.975rem;
+    overflow-wrap: break-word;
+  }
+  .footer-link:hover {
+    color: #fff;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+  .footer-contact {
+    grid-column: 1 / -1;
+  }
+  .footer-contact li {
+    display: flex;
+    gap: 0.65rem;
+    align-items: flex-start;
+    font-size: 0.975rem;
+    color: rgb(251 247 240 / 0.86);
+  }
+  .footer-contact li :global(svg) {
+    flex: none;
+    margin-top: 0.2rem;
+    color: var(--color-gold-300);
+  }
+  .social {
+    margin-top: 1.25rem;
+  }
+  .social-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.55rem 1rem 0.55rem 0.75rem;
+    border: 1px solid rgb(251 247 240 / 0.3);
+    border-radius: var(--radius-pill);
+    font-weight: 600;
+    text-decoration: none;
+    transition: background-color var(--duration-fast) var(--ease-out);
+  }
+  .social-link:hover {
+    background: rgb(251 247 240 / 0.12);
+  }
+
+  .footer-legal {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 2rem;
+    padding-block: 1.75rem 2.25rem;
+    border-top: 1px solid rgb(251 247 240 / 0.16);
+    font-size: var(--text-step--1);
+    color: rgb(251 247 240 / 0.76);
+  }
+  .footer-legal strong {
+    color: var(--color-cream);
+    font-weight: 600;
+  }
+  .nowrap {
+    white-space: nowrap;
+  }
+
+  @media (min-width: 48rem) {
+    .footer-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .footer-contact > ul:first-of-type {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem 2.5rem;
+    }
+  }
+  @media (min-width: 72rem) {
+    .footer-grid {
+      grid-template-columns: 1.5fr repeat(3, minmax(0, 1fr));
+      column-gap: 3rem;
+    }
+    .footer-brand {
+      grid-column: auto;
+    }
+    .footer-contact {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem 2rem;
+      padding-top: 2rem;
+      border-top: 1px solid rgb(251 247 240 / 0.16);
+    }
+    .footer-contact .footer-heading {
+      display: none;
+    }
+    .footer-contact .social {
+      margin-top: 0;
+    }
+  }
+</style>

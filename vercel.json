@@ -1,0 +1,19 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "trailingSlash": true,
+  "redirects": [
+    { "source": "/who-we-are/vision-and-mission/", "destination": "/who-we-are/our-story/#mission", "statusCode": 301 },
+    { "source": "/who-we-are/theory-of-change/", "destination": "/who-we-are/our-story/#theory-of-change", "statusCode": 301 },
+    { "source": "/reports/", "destination": "/stories/", "statusCode": 301 },
+    { "source": "/street-business-school-burundia-strong-start-to-2026/", "destination": "/stories/street-business-school-strong-start/", "statusCode": 301 },
+    { "source": "/from-potential-to-possibility-stories-from-rwanda/", "destination": "/stories/from-potential-to-possibility/", "statusCode": 301 },
+    { "source": "/clean-water-is-a-blessing/", "destination": "/stories/clean-water-is-a-blessing/", "statusCode": 301 },
+    { "source": "/q3-progress-business-training-in-burundi/", "destination": "/stories/q3-progress-burundi/", "statusCode": 301 },
+    { "source": "/celebrating-masters-students-in-rwanda/", "destination": "/stories/celebrating-masters-students/", "statusCode": 301 },
+    { "source": "/tic-welcomes-rwanda-rising/", "destination": "/stories/", "statusCode": 301 },
+    { "source": "/1-in-4-health-care-facilities-lack-basic-water-services/", "destination": "/stories/", "statusCode": 301 },
+    { "source": "/support-transform-with-your-purchases/", "destination": "/stories/", "statusCode": 301 },
+    { "source": "/solar-in-malawi/", "destination": "/stories/", "statusCode": 301 },
+    { "source": "/jalawe-maternity-centre/", "destination": "/streams/", "statusCode": 301 }
+  ]
+}

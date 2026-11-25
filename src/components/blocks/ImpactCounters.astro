@@ -1,0 +1,141 @@
+---
+import type { BlockOf } from '../../content.config';
+import Counter from '../ui/Counter.astro';
+import { emphasize, getProjects, projectHref } from '../../lib/content';
+
+type Props = BlockOf<'impactCounters'>;
+const { id, eyebrow, heading, items, note } = Astro.props;
+const projects = await getProjects();
+const byId = Object.fromEntries(projects.map((p) => [p.id, p]));
+---
+
+<section id={id} class="section band-cream counters" aria-labelledby="counters-title">
+  <div class="container-site">
+    <div class="counters-head" data-reveal>
+      <p class="eyebrow">{eyebrow}</p>
+      <h2 id="counters-title" class="heading-lg" set:html={emphasize(heading)} />
+    </div>
+
+    <ul class="counter-grid">
+      {
+        items.map((item, i) => {
+          const project = byId[item.project];
+          return (
+            <li class:list={['counter-item', { 'is-link': project }]} style={`--accent: var(--color-${project?.data.accent ?? 'rwanda'})`} data-reveal={i + 1}>
+              {/* The program name sits above its number; the link stretches over the whole card. */}
+              {project && (
+                <p class="counter-program">
+                  <a href={projectHref(project.id)} class="counter-link">
+                    {project.data.title}
+                    <span class="visually-hidden">: read about this program</span>
+                  </a>
+                </p>
+              )}
+              <Counter value={item.value} prefix={item.prefix} suffix={item.suffix} class="counter-number" />
+              <p class="counter-label">{item.label}</p>
+              <p class="counter-detail">{item.detail}</p>
+            </li>
+          );
+        })
+      }
+    </ul>
+
+    {note && <p class="counters-note" data-reveal>{note}</p>}
+  </div>
+</section>
+
+<style>
+  .counters-head {
+    display: grid;
+    gap: 1rem;
+    max-width: 44rem;
+  }
+  .counter-grid {
+    display: grid;
+    gap: 2.75rem 2rem;
+    margin-top: clamp(2.5rem, 2rem + 3vw, 4.5rem);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  }
+  .counter-item {
+    position: relative;
+    padding-top: 1.5rem;
+  }
+  /* Each number sits under a bar in its program's colour from the logo. */
+  .counter-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 3.5rem;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--accent);
+  }
+  .counter-item :global(.counter-number) {
+    font-family: var(--font-display);
+    font-variation-settings: 'SOFT' 100;
+    font-size: var(--text-step-6);
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -0.035em;
+    color: var(--color-green-800);
+  }
+  .counter-label {
+    margin-top: 0.75rem;
+    font-size: var(--text-step-1);
+    font-weight: 700;
+    line-height: 1.3;
+  }
+  .counter-detail {
+    margin-top: 0.35rem;
+    color: var(--color-ink-muted);
+    font-size: 0.975rem;
+    line-height: 1.5;
+  }
+  .counter-program {
+    margin-bottom: 0.6rem;
+    font-size: var(--text-step--1);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--color-green-700);
+  }
+  .counter-link {
+    color: inherit;
+    text-decoration: none;
+  }
+  /* Stretch the program link over the whole card, so the card is one target. */
+  .counter-link::after {
+    content: '';
+    position: absolute;
+    inset: -0.75rem -1rem;
+    border-radius: var(--radius-md);
+  }
+  .counter-link:focus-visible {
+    outline: none;
+  }
+  .counter-link:focus-visible::after {
+    outline: 3px solid var(--color-green-700);
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .counter-item.is-link {
+      transition: transform var(--duration-base) var(--ease-out);
+    }
+    .counter-item.is-link:hover {
+      transform: translateY(-3px);
+    }
+  }
+  .counter-item.is-link:hover .counter-link {
+    text-decoration: underline;
+    text-decoration-color: var(--accent);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 4px;
+  }
+  .counters-note {
+    margin-top: 3.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--color-line);
+    color: var(--color-ink-muted);
+    font-size: 0.975rem;
+  }
+</style>

@@ -1,0 +1,120 @@
+{
+  "page": {
+    "title": "Donate",
+    "description": "Give to Transform International (Canada): support Street Business School in Burundi, Rwanda Rising, STREAMS in Malawi or Open Hands India. Tax receipts for gifts over $25.",
+    "heading": "Give where it *grows*",
+    "intro": "Your gift goes to local partners who turn it into businesses, school years and clean water — and the results keep growing long after.",
+    "formHeading": "Give to where the need is greatest",
+    "formText": "A general gift lets our partners put your donation wherever it will do the most good right now. The secure form below is run by Zeffy.",
+    "formInstruction": "Enter your amount and click Continue. You can choose a specific program on the next step.",
+    "programsHeading": "Choose where your gift *goes*",
+    "programsText": "Pick a program and give through its own secure Zeffy form, so your gift goes exactly where you choose.",
+    "generalProgramsHeading": "These programs are supported through our general donation form",
+    "otherHeading": "Other ways to give",
+    "volunteer": "Lend your skills, share a campaign on Facebook, or present our work to your Rotary Club."
+  },
+  "generalZeffyUrl": "https://www.zeffy.com/en-CA/donation-form/0a3bfb00-e853-4e7b-8bde-35eda07d5482",
+  "generalZeffyEmbedUrl": "https://www.zeffy.com/en-CA/donation-form/0a3bfb00-e853-4e7b-8bde-35eda07d5482",
+  "levels": [
+    {
+      "published": true,
+      "amount": 50,
+      "title": "Training materials and coaching",
+      "text": "Contributes toward training materials, coaching and participant support for Street Business School in Gitega.",
+      "project": "thars",
+      "showOn": []
+    },
+    {
+      "published": true,
+      "amount": 205,
+      "title": "Half of one woman’s training",
+      "text": "Covers about half the cost of one participant’s Street Business School training in Burundi.",
+      "project": "thars",
+      "showOn": []
+    },
+    {
+      "published": true,
+      "amount": 410,
+      "title": "One woman’s complete training",
+      "text": "Funds one participant’s complete Street Business School training in Burundi, from her first weekend of training to graduation day.",
+      "project": "thars",
+      "showOn": ["home", "donate", "program"]
+    },
+    {
+      "published": true,
+      "amount": 2050,
+      "title": "Five women through the full training",
+      "text": "Funds five participants through all six months of Street Business School training and home coaching in Gitega.",
+      "project": "thars",
+      "showOn": ["home", "donate", "program"]
+    },
+    {
+      "published": true,
+      "amount": 5000,
+      "title": "About 12 women through the training",
+      "text": "Trains about 12 participants, from the first weekend of Street Business School to graduation.",
+      "project": "thars",
+      "showOn": ["donate"]
+    },
+    {
+      "published": true,
+      "amount": 12300,
+      "title": "An entire cohort of about 30 women",
+      "text": "Funds a whole Street Business School cohort of about 30 participants, from the first weekend of training to graduation.",
+      "project": "thars",
+      "showOn": ["program"]
+    },
+    {
+      "published": true,
+      "amount": 100,
+      "title": "School lunch, notebooks and uniform",
+      "text": "Provides school lunch, notebooks and a uniform to a day student in Rwanda.",
+      "project": "rwanda-risings-progress",
+      "showOn": ["donate", "program"]
+    },
+    {
+      "published": true,
+      "amount": 360,
+      "title": "A year of boarding school",
+      "text": "Provides a year of great education at boarding school for a top-performing student from one of the poorest families.",
+      "project": "rwanda-risings-progress",
+      "showOn": ["home", "donate", "program"]
+    },
+    {
+      "published": true,
+      "amount": 1100,
+      "title": "A university living stipend",
+      "text": "Gives a living stipend to a scholarship winner in university.",
+      "project": "rwanda-risings-progress",
+      "showOn": ["home", "donate", "program"]
+    },
+    {
+      "published": false,
+      "amount": null,
+      "title": "Learn a trade",
+      "text": "Provides sewing tools, materials and instruction for a woman learning to earn an income in rural Bihar.",
+      "project": "india-ohet",
+      "showOn": ["home", "donate", "program"]
+    }
+  ],
+  "taxReceipt": "Donations of more than $25 receive an official Canadian tax receipt.",
+  "zeffyNote": "We use Zeffy, a donation platform that is free for charities, so 100% of your gift goes to the work. At checkout Zeffy may invite you to leave them an optional tip; it is never required.",
+  "zeffyShortNote": "Our donation platform, Zeffy, is free for charities, so 100% of your gift goes to the work.",
+  "eTransfer": "Prefer e-Transfer? Send it to donations@transforminternational.ca and include your name and mailing address for your tax receipt.",
+  "legacy": "Planning a gift in your will, or naming us as the beneficiary of an RRSP, RRIF or TFSA? Our CEO, Carl Monk, would be glad to talk it through with you.",
+  "securities": {
+    "heading": "Gifts of stock and *securities*",
+    "text": [
+      "You can give publicly traded shares or other securities directly to Transform International (Canada) through CanadaHelps, without selling them first.",
+      "CanadaHelps handles the transfer and sends your official tax receipt."
+    ],
+    "points": [
+      "To be receipted for this year, start the transfer by December 15.",
+      "Please check with your accountant or financial advisor about your own tax situation."
+    ],
+    "heroLink": "Giving shares? See gifts of stock and securities",
+    "cardText": "Give publicly traded shares directly through CanadaHelps, without selling them first. CanadaHelps sends the tax receipt.",
+    "canadaHelpsPageId": "71253",
+    "canadaHelpsFormType": "4"
+  }
+}

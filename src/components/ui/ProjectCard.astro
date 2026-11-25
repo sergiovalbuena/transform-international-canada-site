@@ -1,0 +1,133 @@
+---
+import { Image } from 'astro:assets';
+import type { CollectionEntry } from 'astro:content';
+import Icon from './Icon.astro';
+import Tag from './Tag.astro';
+import { projectHref } from '../../lib/content';
+import { photo } from '../../lib/images';
+
+interface Props {
+  project: CollectionEntry<'projects'>;
+  size?: 'wide' | 'regular';
+  headingLevel?: 'h3' | 'h4';
+}
+
+const { project, size = 'regular', headingLevel: Heading = 'h3' } = Astro.props;
+const p = project.data;
+---
+
+<article class:list={['card group', `card-${size}`]} style={`--accent: var(--color-${p.accent})`}>
+  <div class="card-media">
+    <Image
+      src={photo(p.cardImage ?? p.image)}
+      alt={p.cardImage ? (p.cardImageAlt ?? '') : p.imageAlt}
+      widths={size === 'wide' ? [480, 800, 1100] : [400, 640, 800]}
+      sizes={size === 'wide' ? '(min-width: 64rem) 60vw, 100vw' : '(min-width: 64rem) 30vw, (min-width: 40rem) 50vw, 100vw'}
+      class="card-img"
+      style={`object-position: ${p.cardImage ? '50% 50%' : p.imagePosition}`}
+    />
+  </div>
+  <div class="card-body">
+    <Tag accent={p.accent}>{p.place}</Tag>
+    <Heading class="card-title">{p.title}</Heading>
+    <p class="card-outcome">{p.outcome}</p>
+    <a href={projectHref(project.id)} class="link-arrow card-link">
+      Explore {p.shortTitle}
+      <Icon name="arrow" size={20} />
+    </a>
+  </div>
+</article>
+
+<style>
+  .card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+    background: var(--color-paper);
+    box-shadow: var(--shadow-soft);
+    transition:
+      transform var(--duration-base) var(--ease-out),
+      box-shadow var(--duration-base) var(--ease-out);
+  }
+  /* A strip of the program's colour along the top edge. */
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto;
+    z-index: 1;
+    height: 6px;
+    background: var(--accent);
+  }
+  .card-media {
+    overflow: hidden;
+    aspect-ratio: 3 / 2;
+  }
+  .card-wide .card-media {
+    aspect-ratio: 16 / 9;
+  }
+  .card-media :global(.card-img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 900ms var(--ease-out);
+  }
+  .card-body {
+    display: grid;
+    gap: 0.75rem;
+    justify-items: start;
+    align-content: start;
+    flex: 1;
+    padding: 1.5rem 1.6rem 1.75rem;
+  }
+  .card-title {
+    font-size: var(--text-step-2);
+  }
+  .card-wide .card-title {
+    font-size: var(--text-step-3);
+  }
+  .card-outcome {
+    color: var(--color-ink-muted);
+    line-height: 1.55;
+  }
+  .card-link {
+    margin-top: auto;
+    padding-top: 0.5rem;
+  }
+  /* The whole card is clickable, but only the link is announced. */
+  .card-link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+  }
+  .card-link:focus-visible {
+    outline: none;
+    box-shadow: none;
+  }
+  .card:has(.card-link:focus-visible) {
+    outline: 3px solid var(--color-donate);
+    outline-offset: 3px;
+  }
+
+  @media (hover: hover) {
+    .card:hover {
+      transform: translateY(-6px);
+      box-shadow: var(--shadow-lift);
+    }
+    .card:hover .card-media :global(.card-img) {
+      transform: scale(1.05);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .card,
+    .card-media :global(.card-img) {
+      transition: none;
+    }
+    .card:hover,
+    .card:hover .card-media :global(.card-img) {
+      transform: none;
+    }
+  }
+</style>

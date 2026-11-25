@@ -1,0 +1,133 @@
+---
+/**
+ * The fundraising goal for a program. It deliberately shows only the goal:
+ * no "raised so far" amount is displayed until real figures are provided.
+ */
+import Button from '../ui/Button.astro';
+import { formatMoney } from '../../lib/content';
+
+interface Props {
+  goal: { amount: number; period: string; title: string; text: string };
+  zeffyUrl: string;
+  accent: string;
+}
+
+const { goal, zeffyUrl, accent } = Astro.props;
+---
+
+<section class="section band-cream goal" style={`--accent: var(--color-${accent})`} aria-labelledby="goal-title">
+  <div class="container-site goal-grid">
+    <div data-reveal>
+      <p class="eyebrow">Our {goal.period} goal</p>
+      <h2 id="goal-title" class="heading-md">{goal.title}</h2>
+      <p class="goal-text">{goal.text}</p>
+    </div>
+    <div class="goal-card" data-reveal="2">
+      <p class="goal-amount">
+        {formatMoney(goal.amount)}
+        <span>goal for {goal.period}</span>
+      </p>
+      <div class="goal-track" aria-hidden="true">
+        <span class="goal-start"></span>
+        <span class="goal-flag"></span>
+      </div>
+      <div class="goal-scale" aria-hidden="true">
+        <span>Start</span>
+        <span>{formatMoney(goal.amount)}</span>
+      </div>
+      <p class="goal-note">Every gift, of any size, moves this program closer to its goal.</p>
+      <Button href={zeffyUrl} variant="donate" size="lg" icon="heart">Help us reach it</Button>
+    </div>
+  </div>
+</section>
+
+<style>
+  .goal-grid {
+    display: grid;
+    gap: 2.5rem;
+    align-items: center;
+  }
+  .goal-grid > div:first-child {
+    display: grid;
+    gap: 1rem;
+  }
+  .goal-text {
+    max-width: 34rem;
+    color: var(--color-ink-muted);
+  }
+  .goal-card {
+    display: grid;
+    gap: 1rem;
+    justify-items: start;
+    padding: 2rem;
+    border-radius: var(--radius-lg);
+    background: var(--color-paper);
+    box-shadow: var(--shadow-soft);
+  }
+  .goal-amount {
+    display: grid;
+    font-family: var(--font-display);
+    font-variation-settings: 'SOFT' 100;
+    font-size: var(--text-step-6);
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    color: var(--color-green-800);
+  }
+  .goal-amount span {
+    margin-top: 0.5rem;
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0;
+    color: var(--color-ink-muted);
+  }
+  /* An open road toward the goal: a dotted track from a starting point to a
+     flag in the colour ribbon. It never suggests an amount already raised. */
+  .goal-track {
+    position: relative;
+    width: 100%;
+    height: 28px;
+    margin-top: 0.75rem;
+    background: radial-gradient(circle, var(--color-sand-deep) 2.5px, transparent 3px) 0 50% / 14px 14px repeat-x;
+  }
+  .goal-start {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--accent);
+    translate: 0 -50%;
+  }
+  .goal-flag {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--ribbon);
+    box-shadow: 0 0 0 5px var(--color-gold-100);
+    translate: 0 -50%;
+  }
+  .goal-note {
+    font-size: 0.9rem;
+    color: var(--color-ink-muted);
+  }
+  .goal-scale {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-ink-muted);
+  }
+  @media (min-width: 64rem) {
+    .goal-grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 5rem;
+    }
+  }
+</style>

@@ -1,0 +1,72 @@
+---
+import type { BlockOf } from '../../content.config';
+import ProjectCard from '../ui/ProjectCard.astro';
+import { emphasize, getProjects } from '../../lib/content';
+
+type Props = BlockOf<'projectGrid'>;
+const { eyebrow, heading, text } = Astro.props;
+const projects = await getProjects();
+---
+
+<section class="section band-sand programs" aria-labelledby="programs-title">
+  <div class="container-site">
+    <div class="programs-head" data-reveal>
+      <div>
+        <p class="eyebrow">{eyebrow}</p>
+        <h2 id="programs-title" class="heading-lg" set:html={emphasize(heading)} />
+      </div>
+      <p class="lede">{text}</p>
+    </div>
+
+    <ul class="program-grid">
+      {
+        projects.map((project, i) => (
+          <li class={`slot slot-${i + 1}`} data-reveal={(i % 3) + 1}>
+            <ProjectCard project={project} size={i === 0 ? 'wide' : 'regular'} />
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .programs-head {
+    display: grid;
+    gap: 1.25rem 4rem;
+    align-items: end;
+    margin-bottom: clamp(2.5rem, 2rem + 3vw, 4rem);
+  }
+  .program-grid {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+  }
+  .slot {
+    display: flex;
+  }
+  .slot > :global(*) {
+    flex: 1;
+  }
+
+  @media (min-width: 64rem) {
+    .programs-head {
+      grid-template-columns: 1.1fr 0.9fr;
+    }
+    /* A bento rhythm: wide + narrow, then rows of three. With exactly seven
+       programs the last row is two halves, so no row is left half empty. */
+    .program-grid {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+    .slot {
+      grid-column: span 2;
+    }
+    .slot-1 {
+      grid-column: span 4;
+    }
+    .slot-6:nth-last-child(2),
+    .slot-7:last-child {
+      grid-column: span 3;
+    }
+  }
+</style>

@@ -1,0 +1,507 @@
+---
+import { Image } from 'astro:assets';
+// The logo file from the old site, cropped to the artwork (the original has
+// empty space below it, which threw off vertical alignment).
+import logo from '../../assets/logo/transform-logo-ca-cropped.png';
+import Button from '../ui/Button.astro';
+import Icon from '../ui/Icon.astro';
+import { getSite } from '../../lib/content';
+
+const site = await getSite();
+const current = Astro.url.pathname;
+const isCurrent = (href: string) => current === href;
+const inSection = (item: { href: string; children: { href: string }[] }) =>
+  isCurrent(item.href) || item.children.some((c) => isCurrent(c.href));
+---
+
+<header class="site-header" data-header>
+  <div class="container-site header-inner">
+    <a href="/" class="logo" aria-label={`${site.name} — home`}>
+      <Image src={logo} alt="" width={200} height={49} loading="eager" class="logo-img" />
+    </a>
+
+    <nav class="nav-desktop" aria-label="Main">
+      <ul class="nav-list">
+        {
+          site.nav.map((item, i) =>
+            item.children.length ? (
+              <li class="nav-item has-menu">
+                <button
+                  type="button"
+                  class:list={['nav-link', { 'is-current': inSection(item) }]}
+                  aria-expanded="false"
+                  aria-controls={`menu-${i}`}
+                  data-menu-button
+                >
+                  {item.label}
+                  <Icon name="chevron" size={16} class="chev" />
+                </button>
+                <ul class="submenu" id={`menu-${i}`} data-menu>
+                  {item.children.map((child) => (
+                    <li>
+                      <a href={child.href} aria-current={isCurrent(child.href) ? 'page' : undefined}>
+                        {child.label}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </li>
+            ) : (
+              <li class="nav-item">
+                <a
+                  href={item.href}
+                  class:list={['nav-link', { 'is-current': isCurrent(item.href) }]}
+                  aria-current={isCurrent(item.href) ? 'page' : undefined}
+                >
+                  {item.label}
+                </a>
+              </li>
+            ),
+          )
+        }
+      </ul>
+    </nav>
+
+    <div class="header-actions">
+      <Button href={site.donate.href} variant="donate" icon="heart" class="header-donate">{site.donate.label}</Button>
+      <button
+        type="button"
+        class="menu-toggle"
+        aria-expanded="false"
+        aria-controls="mobile-menu"
+        data-mobile-toggle
+      >
+        <Icon name="menu" size={26} />
+        <span class="visually-hidden">Open menu</span>
+      </button>
+    </div>
+  </div>
+  <div class="header-ribbon" aria-hidden="true"></div>
+</header>
+
+<!--
+  Mobile menu: a full-screen panel with a focus trap. It sits outside <header>
+  on purpose: the header's backdrop-filter makes it the containing block for
+  fixed-position children, which clipped the panel to the header's height.
+-->
+<div class="mobile-menu" id="mobile-menu" data-mobile-menu role="dialog" aria-modal="true" aria-label="Menu" hidden>
+  <div class="mobile-top">
+    <a href="/" class="logo" aria-label={`${site.name} — home`}>
+      <Image src={logo} alt="" width={160} height={39} class="logo-img" />
+    </a>
+    <button type="button" class="menu-toggle" data-mobile-close>
+      <Icon name="close" size={26} />
+      <span class="visually-hidden">Close menu</span>
+    </button>
+  </div>
+  <nav aria-label="Main (mobile)" class="mobile-nav">
+    <ul>
+      {
+        site.nav.map((item) => (
+          <li>
+            {item.children.length ? (
+              <details open={inSection(item)}>
+                <summary>
+                  {item.label}
+                  <Icon name="chevron" size={20} class="chev" />
+                </summary>
+                <ul>
+                  {item.children.map((child) => (
+                    <li>
+                      <a href={child.href} aria-current={isCurrent(child.href) ? 'page' : undefined}>
+                        {child.label}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            ) : (
+              <a href={item.href} class="mobile-top-link" aria-current={isCurrent(item.href) ? 'page' : undefined}>
+                {item.label}
+              </a>
+            )}
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+  <div class="mobile-cta">
+    <Button href={site.donate.href} variant="donate" size="lg" icon="heart">{site.donate.label}</Button>
+    <p>{site.footer.taxReceipt}</p>
+  </div>
+</div>
+
+<script>
+  const header = document.querySelector<HTMLElement>('[data-header]');
+
+  // Shrink the header and show the ribbon once the page has scrolled.
+  if (header) {
+    const sentinel = document.createElement('div');
+    sentinel.style.cssText = 'position:absolute;top:0;height:24px;width:1px;pointer-events:none';
+    document.body.prepend(sentinel);
+    new IntersectionObserver(([entry]) => {
+      header.classList.toggle('is-scrolled', !entry.isIntersecting);
+    }).observe(sentinel);
+  }
+
+  // Desktop dropdowns: click or keyboard opens; Escape or clicking away closes.
+  const buttons = [...document.querySelectorAll<HTMLButtonElement>('[data-menu-button]')];
+  const closeAll = (except?: HTMLButtonElement) =>
+    buttons.forEach((b) => b !== except && b.setAttribute('aria-expanded', 'false'));
+  buttons.forEach((button) => {
+    button.addEventListener('click', () => {
+      const open = button.getAttribute('aria-expanded') === 'true';
+      closeAll(button);
+      button.setAttribute('aria-expanded', String(!open));
+    });
+  });
+  document.addEventListener('click', (e) => {
+    if (!(e.target as Element).closest('.has-menu')) closeAll();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    const open = buttons.find((b) => b.getAttribute('aria-expanded') === 'true');
+    if (open) {
+      closeAll();
+      open.focus();
+    }
+  });
+  document.querySelectorAll<HTMLElement>('.has-menu').forEach((item) => {
+    item.addEventListener('focusout', (e) => {
+      if (!item.contains(e.relatedTarget as Node)) {
+        item.querySelector('[data-menu-button]')?.setAttribute('aria-expanded', 'false');
+      }
+    });
+  });
+
+  // Mobile menu: focus trap, Escape to close, focus returns to the toggle.
+  const toggle = document.querySelector<HTMLButtonElement>('[data-mobile-toggle]');
+  const panel = document.querySelector<HTMLElement>('[data-mobile-menu]');
+  const closeButton = document.querySelector<HTMLButtonElement>('[data-mobile-close]');
+
+  if (toggle && panel && closeButton) {
+    const focusables = () =>
+      [...panel.querySelectorAll<HTMLElement>('a[href], button, summary')].filter((el) => el.offsetParent !== null);
+
+    // Everything else on the page is made inert while the menu is open, so
+    // focus and taps can't reach it (Safari skips links when tabbing, so the
+    // Tab-key trap below can't be relied on alone).
+    const outside = () => [...document.body.children].filter((el) => el !== panel && el.tagName !== 'SCRIPT') as HTMLElement[];
+
+    const open = () => {
+      panel.hidden = false;
+      toggle.setAttribute('aria-expanded', 'true');
+      document.documentElement.classList.add('menu-open');
+      outside().forEach((el) => (el.inert = true));
+      requestAnimationFrame(() => panel.classList.add('is-open'));
+      closeButton.focus();
+    };
+    const close = (returnFocus = true) => {
+      panel.classList.remove('is-open');
+      toggle.setAttribute('aria-expanded', 'false');
+      document.documentElement.classList.remove('menu-open');
+      outside().forEach((el) => (el.inert = false));
+      panel.hidden = true;
+      if (returnFocus) toggle.focus();
+    };
+
+    toggle.addEventListener('click', open);
+    closeButton.addEventListener('click', () => close());
+    // Tapping a link closes the menu (matters for same-page #anchor links).
+    panel.addEventListener('click', (e) => {
+      if ((e.target as Element).closest('a[href]')) close(false);
+    });
+    // Coming back with the browser's Back button can restore the page from
+    // the back/forward cache with the menu still open.
+    window.addEventListener('pageshow', (e) => {
+      if (e.persisted && !panel.hidden) close(false);
+    });
+    panel.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        close();
+        return;
+      }
+      // Move focus ourselves, so Tab cycles through the panel the same way in
+      // every browser (including Safari, which normally skips links).
+      if (e.key !== 'Tab') return;
+      const items = focusables();
+      if (!items.length) return;
+      e.preventDefault();
+      const i = items.indexOf(document.activeElement as HTMLElement);
+      const next = e.shiftKey ? (i <= 0 ? items.length - 1 : i - 1) : (i + 1) % items.length;
+      items[next].focus();
+    });
+    // Close if the viewport grows past the mobile breakpoint while open.
+    matchMedia('(min-width: 64rem)').addEventListener('change', (e) => {
+      if (e.matches && !panel.hidden) close(false);
+    });
+  }
+</script>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgb(251 247 240 / 0.94);
+    backdrop-filter: saturate(1.4) blur(10px);
+    transition: box-shadow var(--duration-base) var(--ease-out);
+  }
+  .site-header.is-scrolled {
+    box-shadow: 0 10px 30px -18px rgb(60 40 10 / 0.35);
+  }
+
+  .header-inner {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    height: 4.75rem;
+  }
+
+  .logo {
+    display: block;
+    flex: none;
+    border-radius: 6px;
+  }
+  /* Only a transform on scroll, so nothing below the header moves. */
+  .logo-img {
+    width: clamp(132px, 30vw, 168px);
+    height: auto;
+    transform-origin: left center;
+    transition: transform var(--duration-base) var(--ease-out);
+  }
+  .is-scrolled .logo .logo-img {
+    transform: scale(0.88);
+  }
+
+  /* The colour ribbon appears under the header once you scroll. */
+  .header-ribbon {
+    height: 3px;
+    background: var(--ribbon);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform var(--duration-slow) var(--ease-out);
+  }
+  .is-scrolled .header-ribbon {
+    transform: scaleX(1);
+  }
+
+  .nav-desktop {
+    display: none;
+    margin-left: auto;
+  }
+  .nav-list {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+  .nav-item {
+    position: relative;
+  }
+  .nav-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.6rem 0.9rem;
+    border-radius: var(--radius-pill);
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--color-ink);
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color var(--duration-fast) var(--ease-out);
+  }
+  .nav-link:hover,
+  .nav-link[aria-expanded='true'] {
+    background: var(--color-sand);
+  }
+  .nav-link.is-current {
+    box-shadow: inset 0 -3px 0 var(--color-donate);
+    border-radius: 0;
+  }
+  .chev {
+    transition: transform var(--duration-base) var(--ease-out);
+  }
+  [aria-expanded='true'] > .chev {
+    transform: rotate(180deg);
+  }
+
+  .submenu {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    left: 50%;
+    min-width: 17rem;
+    padding: 0.6rem;
+    border-radius: var(--radius-md);
+    background: var(--color-paper);
+    box-shadow: var(--shadow-lift);
+    border: 1px solid var(--color-line);
+    opacity: 0;
+    visibility: hidden;
+    translate: -50% -6px;
+    transition:
+      opacity var(--duration-fast) var(--ease-out),
+      translate var(--duration-fast) var(--ease-out),
+      visibility 0s linear var(--duration-fast);
+  }
+  [aria-expanded='true'] + .submenu {
+    opacity: 1;
+    visibility: visible;
+    translate: -50% 0;
+    transition-delay: 0s;
+  }
+  .submenu a {
+    display: block;
+    padding: 0.6rem 0.85rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.975rem;
+    font-weight: 500;
+    text-decoration: none;
+    color: var(--color-ink);
+  }
+  .submenu a:hover {
+    background: var(--color-sand);
+  }
+  .submenu a[aria-current='page'] {
+    font-weight: 700;
+    color: var(--color-green-700);
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: auto;
+  }
+  .header-actions :global(.header-donate) {
+    min-height: 44px;
+    padding: 0.6rem 1.2rem;
+  }
+
+  .menu-toggle {
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    color: var(--color-ink);
+    cursor: pointer;
+  }
+  .menu-toggle:hover {
+    background: var(--color-sand);
+  }
+
+  @media (min-width: 64rem) {
+    .nav-desktop {
+      display: block;
+    }
+    .header-actions {
+      margin-left: 0.75rem;
+    }
+    .header-actions .menu-toggle {
+      display: none;
+    }
+  }
+
+  /* ---- Mobile menu panel ---- */
+  .mobile-menu {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding: 0 var(--space-gutter) calc(2rem + env(safe-area-inset-bottom));
+    background: var(--color-cream);
+    opacity: 0;
+    translate: 0 -12px;
+    transition:
+      opacity var(--duration-base) var(--ease-out),
+      translate var(--duration-base) var(--ease-out);
+  }
+  .mobile-menu[hidden] {
+    display: none;
+  }
+  .mobile-menu.is-open {
+    opacity: 1;
+    translate: 0 0;
+  }
+  .mobile-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 4.75rem;
+    flex: none;
+  }
+  .mobile-nav {
+    border-top: 1px solid var(--color-line);
+  }
+  .mobile-nav > ul > li {
+    border-bottom: 1px solid var(--color-line);
+  }
+  .mobile-nav summary,
+  .mobile-top-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.1rem 0.25rem;
+    font-family: var(--font-display);
+    font-variation-settings: 'SOFT' 100;
+    font-size: 1.6rem;
+    font-weight: 560;
+    text-decoration: none;
+    cursor: pointer;
+    list-style: none;
+  }
+  .mobile-nav summary::-webkit-details-marker {
+    display: none;
+  }
+  .mobile-nav details[open] .chev {
+    transform: rotate(180deg);
+  }
+  .mobile-nav details ul {
+    padding: 0 0 1rem 0.25rem;
+  }
+  .mobile-nav details a {
+    display: block;
+    padding: 0.55rem 0;
+    font-size: 1.0625rem;
+    text-decoration: none;
+    color: var(--color-ink-muted);
+  }
+  .mobile-nav a[aria-current='page'] {
+    color: var(--color-green-700);
+    font-weight: 700;
+  }
+  .mobile-cta {
+    margin-top: 2rem;
+    display: grid;
+    gap: 0.9rem;
+  }
+  .mobile-cta p {
+    font-size: var(--text-step--1);
+    color: var(--color-ink-muted);
+  }
+  :global(.menu-open) {
+    overflow: hidden;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .site-header,
+    .logo-img,
+    .header-ribbon,
+    .mobile-menu,
+    .submenu {
+      transition: none;
+    }
+  }
+
+  @media (max-width: 22rem) {
+    .header-actions :global(.header-donate) {
+      padding-inline: 0.9rem;
+    }
+  }
+</style>

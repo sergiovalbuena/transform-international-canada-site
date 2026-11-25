@@ -1,0 +1,807 @@
+---
+/**
+ * Renders a program's `sections` list (see projectSection in
+ * src/content.config.ts), in order, alternating cream and sand bands.
+ * Used by program pages whose content doesn't fit the fixed layout.
+ */
+import { Picture } from 'astro:assets';
+import type { ProjectSection } from '../../content.config';
+import GivingCards from '../ui/GivingCards.astro';
+import Button from '../ui/Button.astro';
+import Icon from '../ui/Icon.astro';
+import { emphasize, formatMoney, getPublishedLevels, rich } from '../../lib/content';
+import { photo } from '../../lib/images';
+
+interface Props {
+  sections: ProjectSection[];
+  /** Program pages pass these so gift sections can link to the right form. */
+  projectId?: string;
+  shortTitle?: string;
+  zeffyUrl?: string;
+  /** A colour key from global.css (a program accent, or "about" on About pages). */
+  accent?: string;
+}
+
+const { sections, projectId, shortTitle = 'our work', zeffyUrl = '/donate/', accent = 'about' } = Astro.props;
+const hasLevels = projectId ? (await getPublishedLevels('program', projectId)).length > 0 : false;
+const initials = (name: string) =>
+  name
+    .split(/\s+/)
+    .filter((w) => /^[A-Z]/.test(w))
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join('');
+const titleId = (i: number) => `section-${i + 1}-title`;
+const widths = [480, 720, 960, 1280];
+// Alternate cream and sand, but let a green "statement" band sit between two
+// sections without breaking the rhythm of the ones around it.
+let light = 0;
+const bands = sections.map((s) => {
+  if (s.type === 'text' && s.variant === 'statement') return 'band-green';
+  return light++ % 2 === 0 ? 'band-cream' : 'band-sand';
+});
+---
+
+<div class="sections" style={`--accent: var(--color-${accent}); --accent-on: var(--color-${accent}-on)`}>
+  {
+    sections.map((s, i) => {
+      const band = s.type === 'text' && s.variant === 'statement' ? 'band-green' : bands[i];
+      const head = s.heading ? (
+        <div class="s-head" data-reveal>
+          {s.eyebrow && <p class="eyebrow">{s.eyebrow}</p>}
+          <h2 id={titleId(i)} class="heading-md" set:html={emphasize(s.heading)} />
+        </div>
+      ) : null;
+
+      if (s.type === 'people') {
+        return (
+          <section id={s.id} class:list={['section', band]} aria-labelledby={s.heading ? titleId(i) : undefined} aria-label={s.heading ? undefined : 'People'}>
+            <div class="container-site">
+              {head}
+              <ul class="s-people">
+                {s.people.map((person) => (
+                  <li class="s-person-row" data-reveal>
+                    <div class="s-avatar" aria-hidden={person.image ? undefined : 'true'}>
+                      {person.image ? (
+                        <Picture src={photo(person.image)} alt={`Portrait of ${person.name}`} formats={['avif', 'webp']} widths={[160, 320]} sizes="8rem" style={`object-position: ${person.position}`} />
+                      ) : (
+                        <span class="s-initials">{initials(person.name)}</span>
+                      )}
+                    </div>
+                    <div class="s-person-text">
+                      {s.heading ? <h3 class="s-person-title">{person.name}</h3> : <h2 class="s-person-title">{person.name}</h2>}
+                      {person.role && <p class="s-person-role">{person.role}</p>}
+                      {person.bio.map((para) => (
+                        <p set:html={rich(para)} />
+                      ))}
+                      {person.email && (
+                        <p class="s-person-email">
+                          <a href={`mailto:${person.email}`} class="link-underline">{person.email}</a>
+                        </p>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </section>
+        );
+      }
+
+      if (s.type === 'text') {
+        if (s.variant === 'statement') {
+          return (
+            <section id={s.id} class:list={['section', band, 's-statement']} aria-labelledby={titleId(i)}>
+              <div class="container-site s-statement-inner" data-reveal>
+                {s.eyebrow && <p class="eyebrow">{s.eyebrow}</p>}
+                <h2 id={titleId(i)} class="heading-lg" set:html={emphasize(s.heading)} />
+                {s.body.map((para) => (
+                  <p class="lede" set:html={rich(para)} />
+                ))}
+              </div>
+            </section>
+          );
+        }
+        const hasMedia = Boolean(s.image);
+        const hasExtra = s.list.length > 0 || s.after.length > 0 || Boolean(s.quote) || s.callouts.length > 0 || Boolean(s.options);
+        // With no photo, the list, quote or gift options move into a second
+        // column so short sections don't leave half the page empty.
+        const aside = !hasMedia && hasExtra;
+        const extra = (
+          <>
+            {s.list.length > 0 && (
+              <ul class="s-list" data-reveal="2">
+                {s.list.map((item) => (
+                  <li>
+                    <span class="s-list-mark" aria-hidden="true">
+                      <Icon name="check" size={16} />
+                    </span>
+                    <span set:html={rich(item)} />
+                  </li>
+                ))}
+              </ul>
+            )}
+            {s.after.length > 0 && (
+              <div class="s-after" data-reveal="2">
+                {s.after.map((para) => (
+                  <p set:html={rich(para)} />
+                ))}
+              </div>
+            )}
+            {s.quote && (
+              <figure class="s-quote" data-reveal="3">
+                <Icon name="quote" size={36} class="s-quote-mark" />
+                <blockquote>
+                  <p>{s.quote.text}</p>
+                </blockquote>
+                <figcaption>{s.quote.attribution}</figcaption>
+              </figure>
+            )}
+            {s.callouts.map((c) => (
+              <aside class="s-callout s-sidebar" data-reveal="3">
+                <p>{c.text}</p>
+                {c.attribution && <p class="s-callout-by">{c.attribution}</p>}
+              </aside>
+            ))}
+            {s.options && (
+              <div class="s-options" data-reveal="3">
+                <h3 class="s-options-title">{s.options.heading}</h3>
+                {s.options.text && <p>{s.options.text}</p>}
+                <ul class="s-options-list">
+                  {s.options.items.map((o) => (
+                    <li>
+                      <span class="s-options-amount">{formatMoney(o.amount)}</span>
+                      <span>{o.label}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Button href={zeffyUrl} variant="donate" icon="heart" srContext={`to ${shortTitle} (opens the secure Zeffy donation form)`}>
+                  {s.options.button}
+                </Button>
+              </div>
+            )}
+          </>
+        );
+        return (
+          <section id={s.id} class:list={['section', band]} aria-labelledby={titleId(i)}>
+            <div class:list={['container-site', 's-text', { 'has-media': hasMedia, 'has-aside': aside, 'is-long': aside && s.list.length >= 5, 'media-left': s.imageSide === 'left' }]}>
+              <div class="s-text-body">
+                {head}
+                {s.body.length > 0 && (
+                  <div class="s-prose" data-reveal="2">
+                    {s.body.map((para) => (
+                      <p set:html={rich(para)} />
+                    ))}
+                  </div>
+                )}
+                {!aside && hasExtra && <div class="s-extra">{extra}</div>}
+              </div>
+              {aside && <div class="s-extra s-aside">{extra}</div>}
+              {s.image && (
+                <figure class="s-figure s-figure-sticky" data-reveal="2">
+                  <Picture
+                    src={photo(s.image.image)}
+                    alt={s.image.alt}
+                    formats={['avif', 'webp']}
+                    widths={widths}
+                    sizes="(min-width: 64rem) 34rem, 100vw"
+                    style={`object-position: ${s.image.position}`}
+                  />
+                  {s.image.caption && <figcaption>{s.image.caption}</figcaption>}
+                </figure>
+              )}
+            </div>
+          </section>
+        );
+      }
+
+      if (s.type === 'cards') {
+        return (
+          <section id={s.id} class:list={['section', band]} aria-labelledby={titleId(i)}>
+            <div class="container-site">
+              {head}
+              {s.intro && <p class="lede s-intro" data-reveal="2" set:html={rich(s.intro)} />}
+              <div class:list={['s-cards-wrap', { 'has-media': s.images.length > 0 }]}>
+                <ul class="s-cards">
+                  {s.items.map((item, n) => (
+                    <li class="s-card" data-reveal={n + 1}>
+                      {item.icon && (
+                        <span class="s-card-icon" aria-hidden="true">
+                          <Icon name={item.icon} size={26} />
+                        </span>
+                      )}
+                      {item.value && <span class="s-card-value">{item.value}</span>}
+                      <h3 class="s-card-title">{item.title}</h3>
+                      {item.text && <p>{item.text}</p>}
+                    </li>
+                  ))}
+                </ul>
+                {s.images.length > 0 && (
+                  <div class:list={['s-card-media', { 'is-pair': s.images.length === 2 }]}>
+                    {s.images.map((img, n) => (
+                      <figure class="s-figure" data-reveal={n + 2}>
+                        <Picture
+                          src={photo(img.image)}
+                          alt={img.alt}
+                          formats={['avif', 'webp']}
+                          widths={widths}
+                          sizes="(min-width: 64rem) 30rem, 100vw"
+                          style={`object-position: ${img.position}`}
+                        />
+                        {img.caption && <figcaption>{img.caption}</figcaption>}
+                      </figure>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+        );
+      }
+
+      if (s.type === 'person') {
+        return (
+          <section id={s.id} class:list={['section', band]} aria-labelledby={titleId(i)}>
+            <div class:list={['container-site', 's-person', { 'has-media': Boolean(s.image) }]}>
+              {s.image && (
+                <figure class="s-portrait" data-reveal>
+                  <Picture src={photo(s.image.image)} alt={s.image.alt} formats={['avif', 'webp']} widths={[160, 320]} sizes="10rem" style={`object-position: ${s.image.position}`} />
+                </figure>
+              )}
+              <div class="s-person-body">
+                {head}
+                <p class="s-person-name" data-reveal="2">
+                  <strong>{s.name}</strong>
+                  {s.role && <> · {s.role}</>}
+                </p>
+                <div class="s-prose" data-reveal="2">
+                  {s.story.map((para) => (
+                    <p set:html={rich(para)} />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+        );
+      }
+
+      if (s.type === 'gifts') {
+        return (
+          <section id={s.id} class:list={['section', band, 's-gifts']} aria-labelledby={titleId(i)}>
+            <div class="container-site">
+              <div class="s-gifts-head">
+                {head}
+                {s.text && <p class="lede" data-reveal="2" set:html={rich(s.text)} />}
+              </div>
+              {hasLevels ? (
+                <GivingCards where="program" project={projectId} linkToZeffy />
+              ) : (
+                <div data-reveal="2">
+                  <Button href={zeffyUrl} variant="donate" size="lg" icon="heart" srContext={`to ${shortTitle} (opens the secure Zeffy donation form)`}>
+                    Give to {shortTitle}
+                  </Button>
+                </div>
+              )}
+            </div>
+          </section>
+        );
+      }
+
+      // program
+      const flip = i % 2 === 1;
+      return (
+        <section id={s.id} class:list={['section', band]} aria-labelledby={titleId(i)}>
+          <div class:list={['container-site', 's-program', { 'has-media': s.images.length > 0 || Boolean(s.callout), flip }]}>
+            <div class="s-program-body">
+              <div class="s-head" data-reveal>
+                {s.eyebrow && <p class="eyebrow">{s.eyebrow}</p>}
+                <h2 id={titleId(i)} class="heading-md s-program-title">
+                  {s.number && (
+                    <span class="s-program-num" aria-hidden="true">
+                      {String(s.number).padStart(2, '0')}
+                    </span>
+                  )}
+                  <span set:html={emphasize(s.heading)} />
+                </h2>
+              </div>
+              <div class="s-prose" data-reveal="2">
+                {s.body.map((para) => (
+                  <p set:html={rich(para)} />
+                ))}
+              </div>
+              {(s.outcomes.length > 0 || s.outcomesLead) && (
+                <div class="s-outcomes" data-reveal="3">
+                  <h3 class="s-outcomes-title">{s.outcomesHeading}</h3>
+                  {s.outcomesLead && <p class="s-outcomes-lead">{s.outcomesLead}</p>}
+                  {s.outcomes.length > 0 && (
+                    <ul class="s-list">
+                      {s.outcomes.map((item) => (
+                        <li>
+                          <span class="s-list-mark" aria-hidden="true">
+                            <Icon name="check" size={16} />
+                          </span>
+                          <span set:html={rich(item)} />
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
+            </div>
+            {(s.images.length > 0 || s.callout) && (
+              <div class="s-program-side">
+                {s.images.map((img, n) => (
+                  <figure class="s-figure" data-reveal={n + 2}>
+                    <Picture
+                      src={photo(img.image)}
+                      alt={img.alt}
+                      formats={['avif', 'webp']}
+                      widths={widths}
+                      sizes="(min-width: 64rem) 30rem, 100vw"
+                      style={`object-position: ${img.position}`}
+                    />
+                    {img.caption && <figcaption>{img.caption}</figcaption>}
+                  </figure>
+                ))}
+                {s.callout && (
+                  <aside class="s-callout" data-reveal="3" aria-label="Why it matters">
+                    <Icon name="quote" size={30} class="s-quote-mark" />
+                    <p>{s.callout.text}</p>
+                    {s.callout.attribution && <p class="s-callout-by">{s.callout.attribution}</p>}
+                  </aside>
+                )}
+              </div>
+            )}
+          </div>
+        </section>
+      );
+    })
+  }
+</div>
+
+<style>
+  .s-head {
+    display: grid;
+    gap: 1rem;
+    align-content: start;
+    max-width: 44rem;
+  }
+  .s-prose {
+    display: grid;
+    gap: 1.1rem;
+    max-width: 44rem;
+    margin-top: 1.5rem;
+  }
+  /*
+   * Running text in every section type uses the body size. (The first
+   * paragraph used to be a larger "lede", which on phones read as the font
+   * shrinking halfway down the section.)
+   */
+  .s-prose p,
+  .s-after p,
+  .s-list li {
+    font-size: var(--text-step-0);
+    line-height: 1.65;
+  }
+  .s-prose :global(strong) {
+    color: var(--color-ink);
+  }
+
+  /* ---- Text ---- */
+  .s-text {
+    display: grid;
+    gap: 2.5rem 4.5rem;
+    align-items: start;
+  }
+  .s-extra {
+    display: grid;
+    gap: 1.5rem;
+    max-width: 44rem;
+    margin-top: 1.75rem;
+  }
+  .s-aside {
+    margin-top: 0;
+  }
+  .s-after {
+    display: grid;
+    gap: 1rem;
+  }
+  .s-extra > .s-quote,
+  .s-extra > .s-sidebar,
+  .s-extra > .s-options {
+    margin-top: 0.25rem;
+  }
+  .s-sidebar {
+    max-width: 44rem;
+  }
+  .s-prose :global(a),
+  .s-list :global(a) {
+    color: var(--color-green-700);
+    font-weight: 600;
+  }
+
+  /* People (e.g. the board): photo or initials beside name, role and bio. */
+  .s-people {
+    display: grid;
+    gap: 3rem;
+  }
+  .s-head + .s-people {
+    margin-top: 2.5rem;
+  }
+  .s-person-row {
+    display: grid;
+    gap: 1.25rem;
+    align-items: start;
+    max-width: 54rem;
+  }
+  .s-avatar {
+    width: 7.5rem;
+    height: 7.5rem;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 4px solid var(--color-paper);
+    box-shadow: var(--shadow-soft);
+    background: var(--color-sand-deep);
+  }
+  .s-avatar :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .s-initials {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    font-family: var(--font-display);
+    font-size: 2.4rem;
+    font-variation-settings: 'SOFT' 100;
+    color: var(--color-green-800);
+  }
+  .s-person-text {
+    display: grid;
+    gap: 0.8rem;
+  }
+  .s-person-title {
+    font-size: var(--text-step-2);
+  }
+  .s-person-role {
+    margin-top: -0.4rem;
+    font-weight: 700;
+    color: var(--color-green-700);
+  }
+  .s-person-text p:not(.s-person-role) {
+    color: var(--color-ink-muted);
+    line-height: 1.65;
+  }
+  .s-person-email {
+    font-weight: 600;
+  }
+  @media (min-width: 40rem) {
+    .s-person-row {
+      grid-template-columns: 7.5rem 1fr;
+      gap: 2rem;
+    }
+  }
+
+  /* A single line given room: the program's vision. */
+  .s-statement-inner {
+    display: grid;
+    gap: 1.25rem;
+    justify-items: center;
+    max-width: 52rem;
+    text-align: center;
+  }
+  .s-statement-inner .lede {
+    max-width: 40rem;
+    font-size: var(--text-step-2);
+    line-height: 1.4;
+  }
+  .s-text-body {
+    display: grid;
+    align-content: start;
+  }
+
+  .s-list {
+    display: grid;
+    gap: 0.75rem;
+  }
+  .s-list li {
+    display: flex;
+    gap: 0.8rem;
+    align-items: flex-start;
+  }
+  .s-list-mark {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 1.6rem;
+    height: 1.6rem;
+    margin-top: 0.1rem;
+    border-radius: 50%;
+    background: var(--color-gold-100);
+    color: var(--color-gold-700);
+  }
+
+  .s-quote {
+    display: grid;
+    gap: 1rem;
+    max-width: 44rem;
+    padding: 1.75rem 1.75rem 1.75rem 2rem;
+    border-left: 5px solid var(--accent);
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    background: var(--color-paper);
+    box-shadow: var(--shadow-soft);
+  }
+  .s-quote blockquote {
+    font-family: var(--font-display);
+    font-variation-settings: 'SOFT' 100;
+    font-size: var(--text-step-1);
+    line-height: 1.45;
+  }
+  .s-quote figcaption {
+    font-weight: 700;
+    color: var(--color-ink-muted);
+  }
+  :global(.s-quote-mark) {
+    color: var(--color-gold-700);
+  }
+
+  .s-options {
+    display: grid;
+    gap: 1rem;
+    justify-items: start;
+    max-width: 44rem;
+    padding: 1.75rem;
+    border-radius: var(--radius-lg);
+    background: var(--color-paper);
+    box-shadow: var(--shadow-soft);
+  }
+  .s-options-title {
+    font-size: var(--text-step-2);
+  }
+  .s-options-list {
+    display: grid;
+    gap: 0.6rem;
+    width: 100%;
+  }
+  .s-options-list li {
+    display: flex;
+    gap: 1rem;
+    align-items: baseline;
+    padding-bottom: 0.6rem;
+    border-bottom: 1px solid var(--color-line);
+  }
+  .s-options-amount {
+    flex: none;
+    min-width: 4.5rem;
+    font-family: var(--font-display);
+    font-variation-settings: 'SOFT' 100;
+    font-size: var(--text-step-2);
+    font-weight: 600;
+    color: var(--color-green-700);
+  }
+
+  .s-figure {
+    display: grid;
+    gap: 0.6rem;
+  }
+  .s-figure :global(img) {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-soft);
+  }
+  .s-figure figcaption {
+    font-size: 0.9rem;
+    color: var(--color-ink-muted);
+  }
+
+  /* ---- Cards ---- */
+  .s-intro {
+    max-width: 44rem;
+    margin-top: 1rem;
+  }
+  .s-cards-wrap {
+    display: grid;
+    gap: 2rem;
+    margin-top: clamp(2rem, 1.5rem + 2vw, 3rem);
+  }
+  .s-cards {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  }
+  .s-card {
+    display: grid;
+    gap: 0.75rem;
+    align-content: start;
+    padding: 1.5rem;
+    border-radius: var(--radius-md);
+    background: var(--color-paper);
+    box-shadow: var(--shadow-soft);
+    border-top: 4px solid var(--accent);
+  }
+  .s-card-icon {
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    background: var(--color-sand);
+    color: var(--color-green-700);
+  }
+  .s-card-value {
+    font-family: var(--font-display);
+    font-variation-settings: 'SOFT' 100;
+    font-size: var(--text-step-4);
+    font-weight: 600;
+    line-height: 1;
+    color: var(--color-green-700);
+  }
+  .s-card-title {
+    font-family: var(--font-sans);
+    font-size: 1.0625rem;
+    font-weight: 600;
+    line-height: 1.45;
+  }
+  .s-card p {
+    color: var(--color-ink-muted);
+  }
+  .s-card-media {
+    display: grid;
+    gap: 1rem;
+  }
+
+  /* ---- Person ---- */
+  .s-person {
+    display: grid;
+    gap: 2rem 4rem;
+    align-items: start;
+  }
+  .s-portrait :global(img) {
+    width: 10rem;
+    height: 10rem;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 5px solid var(--color-paper);
+    box-shadow: var(--shadow-lift);
+  }
+  .s-person-name {
+    margin-top: 1rem;
+    color: var(--color-ink-muted);
+  }
+
+  /* ---- Gifts ---- */
+  .s-gifts-head {
+    display: grid;
+    gap: 1rem;
+    max-width: 44rem;
+    margin-bottom: 2.5rem;
+  }
+
+  /* ---- Program ---- */
+  .s-program {
+    display: grid;
+    gap: 2.5rem 4.5rem;
+    align-items: start;
+  }
+  .s-program-title {
+    display: flex;
+    gap: 1rem;
+    align-items: baseline;
+  }
+  .s-program-num {
+    flex: none;
+    font-variation-settings: 'SOFT' 100;
+    font-weight: 600;
+    color: var(--accent);
+  }
+  .s-outcomes {
+    display: grid;
+    gap: 1rem;
+    max-width: 44rem;
+    margin-top: 2rem;
+    padding: 1.6rem 1.75rem;
+    border-radius: var(--radius-md);
+    background: var(--color-paper);
+    box-shadow: var(--shadow-soft);
+  }
+  .s-outcomes-title {
+    font-family: var(--font-sans);
+    font-size: var(--text-step--1);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-green-700);
+  }
+  .s-outcomes-lead {
+    font-family: var(--font-display);
+    font-variation-settings: 'SOFT' 100;
+    font-size: var(--text-step-2);
+    line-height: 1.25;
+  }
+  .s-program-side {
+    display: grid;
+    gap: 1.25rem;
+  }
+  .s-callout {
+    display: grid;
+    gap: 0.75rem;
+    padding: 1.6rem 1.75rem;
+    border-radius: var(--radius-md);
+    background: var(--accent);
+    color: var(--accent-on);
+  }
+  .s-callout :global(.s-quote-mark) {
+    color: currentColor;
+    opacity: 0.6;
+  }
+  .s-callout p {
+    font-family: var(--font-display);
+    font-variation-settings: 'SOFT' 100;
+    font-size: var(--text-step-1);
+    line-height: 1.45;
+  }
+  .s-callout .s-callout-by {
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  @media (min-width: 64rem) {
+    .s-text.has-media {
+      grid-template-columns: 1.1fr 0.9fr;
+    }
+    .s-text.has-aside {
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+    }
+    /* A long list beside a short heading: keep the heading at the top, in view. */
+    .s-text.has-aside.is-long {
+      align-items: start;
+    }
+    .s-text.has-aside.is-long .s-text-body {
+      position: sticky;
+      top: 7rem;
+    }
+    /* Keep a photo in view beside a long column of text. */
+    .s-figure-sticky {
+      position: sticky;
+      top: 7rem;
+    }
+    /* An odd number of boxes beside photos: the last one spans both columns. */
+    .s-cards-wrap.has-media .s-card:last-child:nth-child(odd) {
+      grid-column: 1 / -1;
+    }
+    .s-text.has-media.media-left {
+      grid-template-columns: 0.9fr 1.1fr;
+    }
+    .s-text.media-left .s-figure {
+      order: -1;
+    }
+    .s-cards-wrap.has-media {
+      grid-template-columns: 1.35fr 1fr;
+      align-items: start;
+    }
+    .s-cards-wrap.has-media .s-cards {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .s-card-media.is-pair .s-figure:nth-child(2) :global(img) {
+      aspect-ratio: 16 / 10;
+    }
+    .s-person.has-media {
+      grid-template-columns: 10rem 1fr;
+    }
+    .s-program.has-media {
+      grid-template-columns: 1.15fr 0.85fr;
+    }
+    .s-program.has-media.flip {
+      grid-template-columns: 0.85fr 1.15fr;
+    }
+    .s-program.flip .s-program-side {
+      order: -1;
+    }
+  }
+</style>

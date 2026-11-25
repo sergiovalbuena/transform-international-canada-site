@@ -1,0 +1,205 @@
+---
+/**
+ * One page per story, at /stories/<file name without the date>/
+ * (stories/2026-04-13-street-business-school-strong-start.md →
+ * /stories/street-business-school-strong-start/). Stories with a `url`
+ * link elsewhere instead and get no page here.
+ */
+import { Picture } from 'astro:assets';
+import { getEntry, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Button from '../../components/ui/Button.astro';
+import Icon from '../../components/ui/Icon.astro';
+import Tag from '../../components/ui/Tag.astro';
+import { formatDate, getStories, projectHref, storySlug } from '../../lib/content';
+import { photo } from '../../lib/images';
+
+export async function getStaticPaths() {
+  const stories = await getStories();
+  return stories.filter((s) => !s.data.url).map((story) => ({ params: { slug: storySlug(story.id) }, props: { story } }));
+}
+
+const { story } = Astro.props;
+const s = story.data;
+const { Content } = await render(story);
+const project = s.project ? await getEntry(s.project) : undefined;
+const widths = [480, 720, 960, 1280, 1600];
+---
+
+<BaseLayout title={s.title} description={s.excerpt} image={s.image} imageAlt={s.imageAlt}>
+  <article class="story-page">
+    <header class="story-hero">
+      <div class="container-site story-hero-inner">
+        <nav aria-label="Breadcrumb" class="story-crumbs">
+          <a href="/stories/" class="link-arrow back-link">
+            <Icon name="arrow" size={18} class="back-icon" />
+            All stories
+          </a>
+        </nav>
+        <div class="story-meta">
+          {project && <Tag accent={project.data.accent}>{project.data.shortTitle}</Tag>}
+          <time datetime={s.date.toISOString().slice(0, 10)}>{s.dateLabel ?? formatDate(s.date)}</time>
+        </div>
+        <h1 id="page-title" class="heading-xl story-title">{s.title}</h1>
+        {s.author && <p class="story-author">By {s.author}</p>}
+      </div>
+    </header>
+
+    <div class="container-site story-layout">
+      <figure class="story-lead">
+        <Picture
+          src={photo(s.image)}
+          alt={s.imageAlt}
+          formats={['avif', 'webp']}
+          widths={widths}
+          sizes="(min-width: 64rem) 56rem, 100vw"
+          loading="eager"
+          fetchpriority="high"
+          style={`object-position: ${s.imagePosition}`}
+        />
+        {s.imageCaption && <figcaption>{s.imageCaption}</figcaption>}
+      </figure>
+
+      <div class="prose-site story-body">
+        <Content />
+      </div>
+
+      {
+        s.gallery.length > 0 && (
+          <div class:list={['story-gallery', { 'is-pair': s.gallery.length > 1 }]}>
+            {s.gallery.map((g) => (
+              <figure>
+                <Picture
+                  src={photo(g.image)}
+                  alt={g.alt}
+                  formats={['avif', 'webp']}
+                  widths={[480, 720, 960]}
+                  sizes="(min-width: 64rem) 28rem, 100vw"
+                  style={`object-position: ${g.position}`}
+                />
+                {g.caption && <figcaption>{g.caption}</figcaption>}
+              </figure>
+            ))}
+          </div>
+        )
+      }
+
+      <footer class="story-foot">
+        {
+          project && (
+            <>
+              <Button href={projectHref(project.id)} variant="outline">
+                Explore {project.data.shortTitle}
+              </Button>
+              <Button href={project.data.zeffyUrl} variant="donate" icon="heart" srContext={`(opens the secure Zeffy donation form)`}>
+                Support {project.data.shortTitle}
+              </Button>
+            </>
+          )
+        }
+        {!project && <Button href="/donate/" variant="donate" icon="heart">Donate</Button>}
+      </footer>
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .story-hero {
+    background: var(--color-sand);
+  }
+  .story-hero-inner {
+    display: grid;
+    gap: 1.1rem;
+    max-width: 56rem;
+    margin-inline: auto;
+    padding-block: clamp(2.5rem, 2rem + 3vw, 4.5rem) clamp(2.5rem, 2rem + 3vw, 4rem);
+  }
+  .back-link :global(.back-icon) {
+    transform: rotate(180deg);
+  }
+  .story-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem 1rem;
+    font-size: var(--text-step--1);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-green-700);
+  }
+  .story-title {
+    max-width: 22ch;
+  }
+  .story-author {
+    font-weight: 600;
+    color: var(--color-ink-muted);
+  }
+  .story-layout {
+    display: grid;
+    justify-items: center;
+    gap: 2.5rem;
+    padding-block: clamp(2.5rem, 2rem + 3vw, 4rem) clamp(4rem, 3rem + 4vw, 6rem);
+  }
+  .story-lead,
+  .story-body,
+  .story-gallery,
+  .story-foot {
+    width: 100%;
+    max-width: 56rem;
+  }
+  .story-lead :global(img) {
+    width: 100%;
+    max-height: 36rem;
+    object-fit: cover;
+    border-radius: var(--radius-lg);
+  }
+  figcaption {
+    margin-top: 0.6rem;
+    font-size: 0.925rem;
+    color: var(--color-ink-muted);
+  }
+  .story-body {
+    max-width: var(--container-prose);
+    font-size: var(--text-step-0);
+    line-height: 1.7;
+  }
+  .story-body :global(blockquote) {
+    padding: 1.25rem 1.5rem;
+    border-left: 5px solid var(--color-gold);
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    background: var(--color-paper);
+    font-family: var(--font-display);
+    font-variation-settings: 'SOFT' 100;
+    font-size: var(--text-step-1);
+    line-height: 1.5;
+  }
+  .story-body :global(blockquote p + p) {
+    margin-top: 0.6em;
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    font-weight: 700;
+  }
+  .story-gallery {
+    display: grid;
+    gap: 1.5rem;
+  }
+  .story-gallery :global(img) {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: var(--radius-md);
+  }
+  .story-foot {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--color-line);
+  }
+  @media (min-width: 48rem) {
+    .story-gallery.is-pair {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+</style>

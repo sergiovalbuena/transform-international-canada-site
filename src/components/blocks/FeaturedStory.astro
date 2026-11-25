@@ -1,0 +1,167 @@
+---
+import { Image } from 'astro:assets';
+import type { BlockOf } from '../../content.config';
+import Button from '../ui/Button.astro';
+import Icon from '../ui/Icon.astro';
+import Counter from '../ui/Counter.astro';
+import { emphasize } from '../../lib/content';
+import { photo } from '../../lib/images';
+
+type Props = BlockOf<'featuredStory'>;
+const { eyebrow, heading, text, image, imageAlt, imagePosition, stat, outcomesHeading, outcomes, link } = Astro.props;
+---
+
+<section class="featured" aria-labelledby="featured-title">
+  <figure class="featured-media">
+    <Image
+      src={photo(image)}
+      alt={imageAlt}
+      widths={[640, 960, 1280, 1600]}
+      sizes="(min-width: 64rem) 56vw, 100vw"
+      class="featured-img"
+      style={`object-position: ${imagePosition}`}
+    />
+    {
+      stat && (
+        <div class="featured-stat" data-reveal>
+          <Counter value={stat.value} prefix={stat.prefix} suffix={stat.suffix} class="featured-stat-number" />
+          <span class="featured-stat-label">{stat.label}</span>
+        </div>
+      )
+    }
+  </figure>
+
+  <div class="featured-body">
+    <div class="featured-inner">
+      <p class="eyebrow" data-reveal>{eyebrow}</p>
+      <h2 id="featured-title" class="heading-lg" set:html={emphasize(heading)} data-reveal="1" />
+      <p class="featured-text" data-reveal="2">{text}</p>
+
+      <h3 class="outcomes-heading" data-reveal="3">{outcomesHeading}</h3>
+      <ul class="outcomes" data-reveal="3">
+        {
+          outcomes.map((o) => (
+            <li>
+              <span class="check">
+                <Icon name="check" size={16} />
+              </span>
+              {o}
+            </li>
+          ))
+        }
+      </ul>
+      <div data-reveal="4">
+        <Button href={link.href} variant="primary" size="lg" icon="arrow">{link.label}</Button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .featured {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    background: var(--color-gold-100);
+  }
+  .featured-media {
+    position: relative;
+    min-height: 22rem;
+  }
+  .featured-media :global(.featured-img) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .featured-stat {
+    position: absolute;
+    right: var(--space-gutter);
+    bottom: -2.5rem;
+    display: grid;
+    gap: 0.25rem;
+    width: 11.5rem;
+    padding: 1.25rem 1.35rem;
+    border-radius: var(--radius-md);
+    background: var(--color-green-800);
+    color: var(--color-cream);
+    box-shadow: var(--shadow-lift);
+  }
+  .featured-stat :global(.featured-stat-number) {
+    font-family: var(--font-display);
+    font-variation-settings: 'SOFT' 100;
+    font-size: 2.75rem;
+    font-weight: 600;
+    line-height: 1;
+    color: var(--color-gold-300);
+  }
+  .featured-stat-label {
+    font-size: 0.875rem;
+    line-height: 1.35;
+  }
+
+  .featured-body {
+    padding: clamp(4.5rem, 3rem + 5vw, 7rem) var(--space-gutter) clamp(3.5rem, 2.5rem + 5vw, 7rem);
+  }
+  .featured-inner {
+    display: grid;
+    gap: 1.25rem;
+    justify-items: start;
+    max-width: 36rem;
+  }
+  .featured-text {
+    font-size: var(--text-step-1);
+    line-height: 1.55;
+  }
+  .outcomes-heading {
+    margin-top: 0.75rem;
+    font-family: var(--font-sans);
+    font-size: var(--text-step--1);
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-green-700);
+  }
+  .outcomes {
+    display: grid;
+    gap: 0.7rem;
+    margin-bottom: 1rem;
+  }
+  .outcomes li {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+    font-weight: 500;
+  }
+  .check {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 1.6rem;
+    height: 1.6rem;
+    margin-top: 0.1rem;
+    border-radius: 50%;
+    background: var(--color-green-700);
+    color: #fff;
+  }
+
+  @media (min-width: 64rem) {
+    .featured {
+      grid-template-columns: 1.15fr 1fr;
+      min-height: 44rem;
+    }
+    .featured-media {
+      min-height: 100%;
+    }
+    .featured-stat {
+      right: -3rem;
+      bottom: 3.5rem;
+      z-index: 1;
+    }
+    .featured-body {
+      display: flex;
+      align-items: center;
+      padding-left: clamp(4.5rem, 6vw, 7rem);
+    }
+  }
+</style>

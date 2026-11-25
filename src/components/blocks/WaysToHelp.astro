@@ -1,0 +1,116 @@
+---
+import type { BlockOf } from '../../content.config';
+import Icon from '../ui/Icon.astro';
+import { emphasize } from '../../lib/content';
+
+type Props = BlockOf<'waysToHelp'>;
+const { eyebrow, heading, text, items } = Astro.props;
+const tones = ['gold-300', 'leaf', 'gold-300', 'leaf'];
+---
+
+<section class="section band-green ways" aria-labelledby="ways-title">
+  <div class="container-site">
+    <div class="ways-head" data-reveal>
+      <p class="eyebrow">{eyebrow}</p>
+      <h2 id="ways-title" class="heading-lg" set:html={emphasize(heading)} />
+      <p class="lede">{text}</p>
+    </div>
+    <ul class="ways-grid">
+      {
+        items.map((item, i) => (
+          <li class="way" style={`--tone: var(--color-${tones[i % tones.length]})`} data-reveal={i + 1}>
+            <span class="way-icon">
+              <Icon name={item.icon} size={28} />
+            </span>
+            <h3 class="way-title">{item.title}</h3>
+            <p class="way-text">{item.text}</p>
+            <a href={item.link.href} class="link-arrow way-link">
+              {item.link.label}
+              <Icon name={item.link.href.startsWith('mailto:') ? 'mail' : 'arrow'} size={20} />
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .ways {
+    position: relative;
+    overflow: hidden;
+  }
+  .ways::after {
+    content: '';
+    position: absolute;
+    left: -16rem;
+    bottom: -22rem;
+    width: 40rem;
+    height: 40rem;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgb(91 159 108 / 0.3), transparent 65%);
+    pointer-events: none;
+  }
+  .ways-head {
+    display: grid;
+    gap: 1rem;
+    max-width: 44rem;
+    margin-bottom: clamp(2.5rem, 2rem + 3vw, 4rem);
+  }
+  .ways-grid {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    gap: 1.25rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  }
+  .way {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1.75rem 1.6rem;
+    border-radius: var(--radius-lg);
+    background: rgb(251 247 240 / 0.07);
+    border: 1px solid rgb(251 247 240 / 0.16);
+    transition:
+      background-color var(--duration-base) var(--ease-out),
+      transform var(--duration-base) var(--ease-out);
+  }
+  @media (hover: hover) {
+    .way:hover {
+      background: rgb(251 247 240 / 0.12);
+      transform: translateY(-4px);
+    }
+  }
+  .way-icon {
+    display: grid;
+    place-items: center;
+    width: 3.25rem;
+    height: 3.25rem;
+    border-radius: 50%;
+    background: var(--tone);
+    color: var(--color-green-950);
+  }
+  .way-title {
+    margin-top: 0.5rem;
+    font-size: var(--text-step-2);
+  }
+  .way-text {
+    color: rgb(251 247 240 / 0.84);
+    font-size: 0.975rem;
+    line-height: 1.55;
+  }
+  .way-link {
+    align-self: flex-start;
+    margin-top: auto;
+    padding-top: 0.75rem;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .way {
+      transition: none;
+    }
+    .way:hover {
+      transform: none;
+    }
+  }
+</style>

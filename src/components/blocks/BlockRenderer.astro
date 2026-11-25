@@ -1,0 +1,48 @@
+---
+/**
+ * The block registry: turns each entry in a page's `blocks` list into its
+ * component. To add a new kind of section, create the component in this
+ * folder, add its schema in src/content.config.ts, and register it here.
+ */
+import type { HomeBlock } from '../../content.config';
+import Hero from './Hero.astro';
+import ImpactCounters from './ImpactCounters.astro';
+import FocusAreas from './FocusAreas.astro';
+import FeaturedStory from './FeaturedStory.astro';
+import WhereWeWork from './WhereWeWork.astro';
+import ProjectGrid from './ProjectGrid.astro';
+import QuoteBand from './QuoteBand.astro';
+import GivingLevels from './GivingLevels.astro';
+import StoryList from './StoryList.astro';
+import TrustStrip from './TrustStrip.astro';
+import WaysToHelp from './WaysToHelp.astro';
+import CallToAction from './CallToAction.astro';
+
+interface Props {
+  blocks: HomeBlock[];
+}
+
+const registry = {
+  hero: Hero,
+  impactCounters: ImpactCounters,
+  focusAreas: FocusAreas,
+  featuredStory: FeaturedStory,
+  whereWeWork: WhereWeWork,
+  projectGrid: ProjectGrid,
+  quoteBand: QuoteBand,
+  givingLevels: GivingLevels,
+  storyList: StoryList,
+  trustStrip: TrustStrip,
+  waysToHelp: WaysToHelp,
+  callToAction: CallToAction,
+} satisfies Record<HomeBlock['type'], unknown>;
+
+const { blocks } = Astro.props;
+---
+
+{
+  blocks.map((block) => {
+    const Component = registry[block.type] as (props: HomeBlock) => unknown;
+    return <Component {...block} />;
+  })
+}

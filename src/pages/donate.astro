@@ -1,0 +1,566 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Button from '../components/ui/Button.astro';
+import Icon from '../components/ui/Icon.astro';
+import Tag from '../components/ui/Tag.astro';
+import { emphasize, formatMoney, getGiving, getProjects, getPublishedLevels, getSite, plain, projectHref } from '../lib/content';
+
+// All text and links on this page come from src/content/settings/giving.json
+// and the program files in src/content/projects/.
+const giving = await getGiving();
+const site = await getSite();
+const projects = await getProjects();
+const page = giving.page;
+const securities = giving.securities;
+const programCards = await Promise.all(
+  projects.map(async (project) => ({
+    project,
+    examples: (await getPublishedLevels('donate', project.id)).sort((a, b) => (a.amount ?? 0) - (b.amount ?? 0)),
+  })),
+);
+// Programs with their own Zeffy form come first; the ones that use the
+// general form are grouped below so donors know where those gifts go.
+const ownForm = programCards.filter(({ project }) => project.data.zeffyUrl !== giving.generalZeffyUrl);
+const generalForm = programCards.filter(({ project }) => project.data.zeffyUrl === giving.generalZeffyUrl);
+---
+
+<BaseLayout title={plain(page.title)} description={page.description}>
+  <section class="donate-hero" aria-labelledby="page-title">
+    <div class="container-site donate-hero-inner">
+      <p class="eyebrow">Donate</p>
+      <h1 id="page-title" class="heading-xl" set:html={emphasize(page.heading)} />
+      <p class="lede">{page.intro}</p>
+      <ul class="assurances">
+        <li><Icon name="shield" size={22} /> {giving.taxReceipt}</li>
+        <li><Icon name="heart" size={22} /> {giving.zeffyShortNote}</li>
+        <li><Icon name="document" size={22} /> Registered charity #{site.charity.registrationNumber}</li>
+      </ul>
+      <a href="#securities" class="hero-securities link-arrow">
+        <Icon name="growth" size={20} />
+        <span>{securities.heroLink}</span>
+      </a>
+    </div>
+    <div class="ribbon" aria-hidden="true"></div>
+  </section>
+
+
+  <!--
+    Program first: donors pick what they are giving to, see two or three
+    concrete examples (giving.json levels with "donate" in showOn), and go
+    straight to that program's own Zeffy form.
+  -->
+  <section class="section band-cream" aria-labelledby="programs-title">
+    <div class="container-site">
+      <div class="programs-head">
+        <h2 id="programs-title" class="heading-md" set:html={emphasize(page.programsHeading)} />
+        <p class="lede">{page.programsText}</p>
+      </div>
+      <ul class="program-grid">
+        {
+          ownForm.map(({ project, examples }) => {
+            const p = project.data;
+            return (
+              <li class="program-card" style={`--accent: var(--color-${p.accent})`}>
+                <div class="program-info">
+                  <Tag accent={p.accent}>{p.place}</Tag>
+                  <h3 class="program-name">
+                    <a href={projectHref(project.id)}>{p.title}</a>
+                  </h3>
+                  {examples.length > 0 ? (
+                    <ul class="program-examples">
+                      {examples.map((level) => (
+                        <li>
+                          <span class="example-amount">{formatMoney(level.amount as number)}</span>
+                          <span>{level.title}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p class="program-outcome">{p.outcome}</p>
+                  )}
+                </div>
+                <Button href={p.zeffyUrl} variant="donate" icon="heart" srContext={`to ${p.shortTitle} (opens the secure Zeffy donation form)`}>
+                  Give to {p.shortTitle}
+                </Button>
+              </li>
+            );
+          })
+        }
+      </ul>
+      {
+        generalForm.length > 0 && (
+          <>
+            <h3 class="general-title">{page.generalProgramsHeading}</h3>
+            <ul class="program-grid is-compact">
+              {generalForm.map(({ project }) => {
+                const p = project.data;
+                return (
+                  <li class="program-card" style={`--accent: var(--color-${p.accent})`}>
+                    <div class="program-info">
+                      <Tag accent={p.accent}>{p.place}</Tag>
+                      <h4 class="program-name">
+                        <a href={projectHref(project.id)}>{p.title}</a>
+                      </h4>
+                      <p class="program-outcome">{p.outcome}</p>
+                    </div>
+                    <Button href={p.zeffyUrl} variant="outline" srContext={`to ${p.shortTitle} (opens our general Zeffy donation form)`}>
+                      Give to {p.shortTitle}
+                    </Button>
+                  </li>
+                );
+              })}
+            </ul>
+          </>
+        )
+      }
+    </div>
+  </section>
+
+  <!--
+    Gifts of securities go through TIC's CanadaHelps securities form. Like the
+    Zeffy form, CanadaHelps' script loads only when a visitor asks for it; it
+    adds the form's iframe right after the script tag.
+  -->
+  <section id="securities" class="section band-sand" aria-labelledby="securities-title">
+    <div class="container-site form-grid">
+      <div class="form-copy">
+        <p class="eyebrow">Other ways to give</p>
+        <h2 id="securities-title" class="heading-md" set:html={emphasize(securities.heading)} />
+        {securities.text.map((para) => <p>{para}</p>)}
+        <ul class="securities-points">
+          {securities.points.map((point) => (
+            <li>
+              <Icon name="check" size={18} />
+              <span>{point}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div class="form-frame" data-ch>
+        <div class="form-placeholder" data-ch-placeholder>
+          <Icon name="growth" size={40} />
+          <p class="form-placeholder-title">Give shares directly</p>
+          <p>The secure CanadaHelps securities form opens right here.</p>
+          <button type="button" class="form-load" data-ch-load data-page-id={securities.canadaHelpsPageId} data-formtype={securities.canadaHelpsFormType}>
+            Show the securities form
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="give" class="section band-cream" aria-labelledby="form-title">
+    <div class="container-site form-grid">
+      <div class="form-copy">
+        <p class="eyebrow">General support</p>
+        <h2 id="form-title" class="heading-md">{page.formHeading}</h2>
+        <p>{page.formText}</p>
+        <p class="form-instruction">
+          <Icon name="arrow" size={20} />
+          <span>{page.formInstruction}</span>
+        </p>
+        <p class="note">{giving.zeffyNote}</p>
+      </div>
+      <!--
+        The Zeffy form loads only when a visitor asks for it: embedding it
+        straight away would add about 9 MB to this page. The template below
+        becomes the iframe on click.
+      -->
+      <div class="form-frame" data-zeffy>
+        <div class="form-placeholder" data-zeffy-placeholder>
+          <Icon name="heart" size={40} />
+          <p class="form-placeholder-title">Ready when you are</p>
+          <p>The secure donation form opens right here. Card details go straight to Zeffy, never to us.</p>
+          <button type="button" class="form-load" data-zeffy-load>Show the donation form</button>
+          <a href={giving.generalZeffyUrl} rel="noopener" class="form-alt">
+            Or open the form on Zeffy’s website
+            <span class="visually-hidden">(opens the secure Zeffy donation form)</span>
+          </a>
+        </div>
+        <template data-zeffy-template>
+          <iframe
+            src={giving.generalZeffyEmbedUrl}
+            title="Secure donation form for Transform International (Canada), provided by Zeffy"
+            allow="payment"></iframe>
+        </template>
+      </div>
+    </div>
+  </section>
+
+
+  <section class="section band-green" aria-labelledby="other-title">
+    <div class="container-site">
+      <h2 id="other-title" class="heading-md other-title">{page.otherHeading}</h2>
+      <ul class="other-grid">
+        <li>
+          <Icon name="mail" size={30} />
+          <h3>e-Transfer</h3>
+          <p>{giving.eTransfer}</p>
+          <a href={`mailto:${site.contact.donations}`} class="link-arrow">
+            {site.contact.donations}
+          </a>
+        </li>
+        <li>
+          <Icon name="growth" size={30} />
+          <h3>Gifts of stock and securities</h3>
+          <p>{securities.cardText}</p>
+          <a href="#securities" class="link-arrow">See how to give securities</a>
+        </li>
+        <li>
+          <Icon name="gift" size={30} />
+          <h3>Legacy gifts</h3>
+          <p>{giving.legacy}</p>
+          <p class="other-aside">
+            To give shares now, use our <a href="#securities">securities form</a>.
+          </p>
+          <a href={`mailto:${site.contact.legacy}?subject=Legacy%20gift`} class="link-arrow">
+            Email Carl Monk about a legacy gift
+          </a>
+        </li>
+        <li>
+          <Icon name="hands" size={30} />
+          <h3>Volunteer or fundraise</h3>
+          <p>{page.volunteer}</p>
+          <a href={`mailto:${site.contact.general}?subject=Getting%20involved`} class="link-arrow">
+            Email us about getting involved
+          </a>
+        </li>
+      </ul>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-zeffy]').forEach((frame) => {
+    frame.querySelector('[data-zeffy-load]')?.addEventListener('click', () => {
+      const template = frame.querySelector<HTMLTemplateElement>('[data-zeffy-template]');
+      if (!template) return;
+      frame.querySelector('[data-zeffy-placeholder]')?.remove();
+      frame.append(template.content.cloneNode(true));
+      frame.querySelector('iframe')?.focus();
+    });
+  });
+
+  // CanadaHelps securities form: add CanadaHelps' own embed script on click.
+  // It looks for #ch_cdn_embed and puts the form's iframe right after it.
+  document.querySelectorAll<HTMLElement>('[data-ch]').forEach((frame) => {
+    const button = frame.querySelector<HTMLButtonElement>('[data-ch-load]');
+    button?.addEventListener('click', () => {
+      if (document.getElementById('ch_cdn_embed')) return;
+      const script = document.createElement('script');
+      script.id = 'ch_cdn_embed';
+      script.src = 'https://www.canadahelps.org/secure/js/cdf_embed.2.js';
+      script.charset = 'utf-8';
+      script.dataset.language = 'en';
+      script.dataset.pageId = button.dataset.pageId ?? '';
+      script.dataset.rootUrl = 'https://www.canadahelps.org';
+      script.dataset.formtype = button.dataset.formtype ?? '4';
+      script.addEventListener('load', () => {
+        frame.querySelector('[data-ch-placeholder]')?.remove();
+        const iframe = frame.querySelector('iframe');
+        if (iframe) {
+          iframe.title = 'Secure gift of securities form for Transform International (Canada), provided by CanadaHelps';
+          iframe.focus();
+        }
+      });
+      script.addEventListener('error', () => {
+        button.textContent = 'The form could not load. Please try again later.';
+        button.disabled = true;
+      });
+      button.textContent = 'Loading the form…';
+      frame.append(script);
+    });
+  });
+</script>
+
+<style>
+  .donate-hero {
+    background:
+      radial-gradient(60rem 30rem at 85% 0%, rgb(242 196 107 / 0.45), transparent 70%),
+      var(--color-gold-100);
+  }
+  .donate-hero-inner {
+    display: grid;
+    gap: 1.25rem;
+    padding-block: clamp(4rem, 3rem + 5vw, 7rem) clamp(3rem, 2rem + 4vw, 5rem);
+  }
+  .donate-hero .lede {
+    color: var(--color-ink);
+  }
+  .assurances {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 2rem;
+    margin-top: 0.75rem;
+  }
+  .assurances li {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+    font-weight: 600;
+    font-size: 0.975rem;
+  }
+  .assurances :global(svg) {
+    flex: none;
+    color: var(--color-green-700);
+  }
+
+  .form-grid {
+    display: grid;
+    gap: 2.5rem;
+    align-items: start;
+  }
+  .form-copy {
+    display: grid;
+    gap: 1rem;
+  }
+  .note {
+    font-size: 0.95rem;
+    color: var(--color-ink-muted);
+  }
+  .note a {
+    color: var(--color-green-700);
+    font-weight: 600;
+  }
+  .form-frame {
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+    background: var(--color-paper);
+    box-shadow: var(--shadow-soft);
+  }
+  .form-frame :global(iframe) {
+    display: block;
+    width: 100%;
+    height: 1150px;
+    border: 0;
+  }
+  /* CanadaHelps sizes its own iframe to the form's height. */
+  .form-frame[data-ch] :global(iframe) {
+    height: auto;
+    min-height: 40rem;
+  }
+  .securities-points {
+    display: grid;
+    gap: 0.75rem;
+  }
+  .securities-points li {
+    display: flex;
+    gap: 0.6rem;
+    align-items: flex-start;
+    font-weight: 600;
+  }
+  .securities-points :global(svg) {
+    flex: none;
+    margin-top: 0.3rem;
+    color: var(--color-green-700);
+  }
+  .hero-securities {
+    display: inline-flex;
+    gap: 0.5rem;
+    align-items: center;
+    justify-self: start;
+    margin-top: 0.25rem;
+    font-weight: 700;
+    color: var(--color-green-700);
+  }
+  .form-placeholder {
+    display: grid;
+    gap: 1rem;
+    justify-items: center;
+    padding: clamp(2.5rem, 2rem + 4vw, 4.5rem) 1.5rem;
+    text-align: center;
+    background:
+      radial-gradient(30rem 16rem at 50% 0%, rgb(242 196 107 / 0.35), transparent 70%),
+      var(--color-paper);
+  }
+  .form-placeholder > :global(svg) {
+    color: var(--color-red);
+  }
+  .form-placeholder p {
+    max-width: 26rem;
+    color: var(--color-ink-muted);
+  }
+  .form-placeholder-title {
+    font-family: var(--font-display);
+    font-variation-settings: 'SOFT' 100;
+    font-size: var(--text-step-3);
+    font-weight: 560;
+    color: var(--color-ink) !important;
+  }
+  .form-load {
+    min-height: 56px;
+    padding: 1rem 2rem;
+    border-radius: var(--radius-pill);
+    background: var(--color-donate);
+    color: var(--color-donate-ink);
+    font-weight: 700;
+    font-size: 1.0625rem;
+    cursor: pointer;
+    box-shadow: 0 6px 18px -8px rgb(168 88 40 / 0.6);
+    transition: background-color var(--duration-base) var(--ease-out);
+  }
+  .form-load:hover {
+    background: var(--color-donate-hover);
+  }
+  .form-alt {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--color-green-700);
+    text-underline-offset: 4px;
+  }
+
+  .programs-head {
+    display: grid;
+    gap: 1rem;
+    max-width: 44rem;
+    margin-bottom: 2.5rem;
+  }
+  .program-grid {
+    display: grid;
+    gap: 1.25rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+  }
+  .general-title {
+    margin: 3rem 0 1.25rem;
+    font-family: var(--font-sans);
+    font-size: var(--text-step-1);
+    font-weight: 700;
+  }
+  .program-grid.is-compact .program-card {
+    border-top-width: 4px;
+    box-shadow: none;
+    border-inline: 1px solid var(--color-line);
+    border-bottom: 1px solid var(--color-line);
+  }
+  .program-grid.is-compact .program-name {
+    font-size: var(--text-step-1);
+  }
+  @media (min-width: 64rem) {
+    .program-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .program-grid.is-compact {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  .program-card {
+    display: grid;
+    grid-template-rows: 1fr auto;
+    gap: 1.5rem;
+    padding: 1.6rem;
+    border-radius: var(--radius-md);
+    background: var(--color-paper);
+    border-top: 6px solid var(--accent);
+    box-shadow: var(--shadow-soft);
+  }
+  .program-card :global(.btn) {
+    justify-self: start;
+    white-space: normal;
+    text-align: left;
+  }
+  .program-info {
+    display: grid;
+    gap: 0.75rem;
+    align-content: start;
+    justify-items: start;
+  }
+  .program-name {
+    font-size: var(--text-step-2);
+  }
+  .program-name a {
+    text-decoration: none;
+  }
+  .program-name a:hover {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+  .program-outcome {
+    color: var(--color-ink-muted);
+  }
+  .program-examples {
+    display: grid;
+    gap: 0.55rem;
+    width: 100%;
+  }
+  .program-examples li {
+    display: flex;
+    gap: 0.9rem;
+    align-items: baseline;
+    padding-bottom: 0.55rem;
+    border-bottom: 1px solid var(--color-line);
+  }
+  .example-amount {
+    flex: none;
+    min-width: 4.75rem;
+    font-family: var(--font-display);
+    font-variation-settings: 'SOFT' 100;
+    font-size: var(--text-step-1);
+    font-weight: 600;
+    color: var(--color-green-700);
+  }
+  .form-instruction {
+    display: flex;
+    gap: 0.6rem;
+    align-items: flex-start;
+    padding: 1rem 1.15rem;
+    border-radius: var(--radius-md);
+    background: var(--color-gold-100);
+    font-weight: 600;
+  }
+  .form-instruction :global(svg) {
+    flex: none;
+    margin-top: 0.15rem;
+    color: var(--color-gold-700);
+  }
+
+  .other-title {
+    margin-bottom: 2.5rem;
+  }
+  .other-grid {
+    display: grid;
+    gap: 1.25rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+  }
+  .other-grid li {
+    display: grid;
+    gap: 0.75rem;
+    align-content: start;
+    padding: 1.75rem;
+    border-radius: var(--radius-lg);
+    background: rgb(251 247 240 / 0.07);
+    border: 1px solid rgb(251 247 240 / 0.16);
+  }
+  .other-grid li > :global(svg) {
+    color: var(--color-gold-300);
+  }
+  .other-grid h3 {
+    font-size: var(--text-step-2);
+  }
+  .other-grid p {
+    color: rgb(251 247 240 / 0.84);
+    overflow-wrap: anywhere;
+  }
+  .other-grid a {
+    overflow-wrap: anywhere;
+  }
+  .other-grid .other-aside {
+    font-size: 0.95rem;
+  }
+  .other-grid .other-aside a {
+    color: var(--color-gold-300);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  @media (min-width: 64rem) {
+    .form-grid {
+      grid-template-columns: 0.8fr 1.2fr;
+      gap: 4rem;
+    }
+    .form-copy {
+      position: sticky;
+      top: 7rem;
+    }
+  }
+</style>

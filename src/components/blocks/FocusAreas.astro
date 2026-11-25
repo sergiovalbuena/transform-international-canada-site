@@ -1,0 +1,262 @@
+---
+import { Image } from 'astro:assets';
+import type { BlockOf } from '../../content.config';
+import Icon from '../ui/Icon.astro';
+import { emphasize } from '../../lib/content';
+import { photo } from '../../lib/images';
+
+type Props = BlockOf<'focusAreas'>;
+const { eyebrow, heading, text, areas, image, imageAlt, link } = Astro.props;
+
+// Each focus area borrows a letter colour from the logo, in order.
+const palette = ['teal', 'purple', 'red', 'orange', 'gold', 'green-700'];
+---
+
+<section class="section band-sand focus" aria-labelledby="focus-title">
+  <div class="container-site">
+    <div class="focus-intro">
+      <div class="focus-copy" data-reveal>
+        <p class="eyebrow">{eyebrow}</p>
+        <h2 id="focus-title" class="heading-lg" set:html={emphasize(heading)} />
+        <p class="lede">{text}</p>
+        {
+          link && (
+            <a href={link.href} class="link-arrow">
+              {link.label}
+              <Icon name="arrow" size={20} />
+            </a>
+          )
+        }
+      </div>
+      <figure class="focus-photo" data-reveal="2">
+        <Image
+          src={photo(image)}
+          alt={imageAlt}
+          widths={[400, 640, 900]}
+          sizes="(min-width: 64rem) 40vw, 100vw"
+          class="focus-img"
+        />
+      </figure>
+    </div>
+
+    <h3 class="visually-hidden">Our six focus areas</h3>
+    <ul class="area-grid">
+      {
+        areas.map((area, i) => (
+          <li class="area" style={`--tone: var(--color-${palette[i % palette.length]})`} data-reveal={(i % 3) + 1}>
+            <span class="area-icon">
+              <Icon name={area.icon} size={30} />
+            </span>
+            <div>
+              <h4 class="area-name">{area.name}</h4>
+              <p class="area-text">{area.text}</p>
+            </div>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+
+  <!-- Decorative marquee of the focus areas. Pauses on hover or with the button; static with reduced motion. -->
+  <div class="marquee" data-marquee>
+    <div class="marquee-track" aria-hidden="true">
+      {
+        [0, 1].map(() => (
+          <ul class="marquee-row">
+            {areas.map((area, i) => (
+              <li style={`--tone: var(--color-${palette[i % palette.length]})`}>
+                <Icon name={area.icon} size={34} />
+                <span>{area.name}</span>
+              </li>
+            ))}
+          </ul>
+        ))
+      }
+    </div>
+    <button type="button" class="marquee-toggle" aria-pressed="false" data-marquee-toggle>
+      <span class="when-playing">Pause animation</span>
+      <span class="when-paused">Play animation</span>
+    </button>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-marquee]').forEach((marquee) => {
+    const button = marquee.querySelector<HTMLButtonElement>('[data-marquee-toggle]');
+    button?.addEventListener('click', () => {
+      const paused = marquee.classList.toggle('is-paused');
+      button.setAttribute('aria-pressed', String(paused));
+    });
+  });
+</script>
+
+<style>
+  .focus {
+    padding-bottom: 0;
+    overflow: hidden;
+  }
+  .focus-intro {
+    display: grid;
+    gap: 2.5rem;
+    align-items: center;
+  }
+  .focus-copy {
+    display: grid;
+    gap: 1.25rem;
+    justify-items: start;
+  }
+  .focus-photo {
+    position: relative;
+  }
+  .focus-photo :global(.focus-img) {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    object-position: 50% 30%;
+    border-radius: var(--radius-lg) var(--radius-lg) var(--radius-lg) 4px;
+    box-shadow: var(--shadow-lift);
+  }
+  /* A ribbon "tab" pinned to the photo corner. */
+  .focus-photo::after {
+    content: '';
+    position: absolute;
+    left: -0.75rem;
+    bottom: 2rem;
+    width: 5.5rem;
+    height: 10px;
+    border-radius: 5px;
+    background: var(--ribbon);
+  }
+
+  .area-grid {
+    display: grid;
+    gap: 1rem;
+    margin-top: clamp(3rem, 2rem + 4vw, 5rem);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+  }
+  .area {
+    display: flex;
+    gap: 1.1rem;
+    align-items: flex-start;
+    padding: 1.5rem;
+    border-radius: var(--radius-md);
+    background: var(--color-paper);
+    box-shadow: var(--shadow-soft);
+    transition:
+      transform var(--duration-base) var(--ease-out),
+      box-shadow var(--duration-base) var(--ease-out);
+  }
+  @media (hover: hover) {
+    .area:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lift);
+    }
+  }
+  .area-icon {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 50%;
+    color: var(--tone);
+    background: color-mix(in oklab, var(--tone) 13%, white);
+  }
+  .area-name {
+    font-size: var(--text-step-1);
+    margin-bottom: 0.35rem;
+  }
+  .area-text {
+    font-size: 0.975rem;
+    line-height: 1.55;
+    color: var(--color-ink-muted);
+  }
+
+  @media (min-width: 64rem) {
+    .focus-intro {
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 5rem;
+    }
+  }
+
+  /* ---- Marquee ---- */
+  .marquee {
+    position: relative;
+    margin-top: clamp(3.5rem, 2.5rem + 4vw, 6rem);
+    padding-block: 1.6rem;
+    border-top: 1px solid var(--color-sand-deep);
+    background: var(--color-sand);
+  }
+  .marquee-track {
+    display: flex;
+    width: max-content;
+  }
+  .marquee-row {
+    display: flex;
+    flex: none;
+    gap: 3.5rem;
+    padding-right: 3.5rem;
+  }
+  .marquee-row li {
+    display: inline-flex;
+    align-items: center;
+    gap: 1rem;
+    font-family: var(--font-display);
+    font-variation-settings: 'SOFT' 100;
+    font-size: var(--text-step-4);
+    font-weight: 500;
+    font-style: italic;
+    line-height: 1;
+    white-space: nowrap;
+    color: var(--color-green-900);
+  }
+  .marquee-row li :global(svg) {
+    color: var(--tone);
+  }
+  .marquee-toggle {
+    position: absolute;
+    right: var(--space-gutter);
+    top: -1.1rem;
+    padding: 0.35rem 0.85rem;
+    border: 1px solid var(--color-sand-deep);
+    border-radius: var(--radius-pill);
+    background: var(--color-paper);
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-ink-muted);
+    cursor: pointer;
+  }
+  .marquee-toggle:hover {
+    color: var(--color-ink);
+  }
+  .when-paused,
+  .is-paused .when-playing {
+    display: none;
+  }
+  .is-paused .when-paused {
+    display: inline;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .marquee-track {
+      animation: marquee 48s linear infinite;
+    }
+    .marquee:hover .marquee-track,
+    .marquee.is-paused .marquee-track {
+      animation-play-state: paused;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .marquee-toggle {
+      display: none;
+    }
+    .area {
+      transition: none;
+    }
+  }
+  @keyframes marquee {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+</style>

@@ -1,0 +1,122 @@
+---
+import type { BlockOf } from '../../content.config';
+import Icon from '../ui/Icon.astro';
+import { getSite } from '../../lib/content';
+
+type Props = BlockOf<'trustStrip'>;
+const { heading, partnersHeading, partners, reports } = Astro.props;
+const site = await getSite();
+---
+
+<section class="trust band-cream" aria-labelledby="trust-title">
+  <div class="container-site trust-grid">
+    <div class="trust-facts" data-reveal>
+      <h2 id="trust-title" class="trust-heading">{heading}</h2>
+      <ul class="facts">
+        <li>
+          <Icon name="shield" size={26} />
+          <span>
+            <strong>Registered charity</strong>
+            #{site.charity.registrationNumber}
+          </span>
+        </li>
+        <li>
+          <Icon name="document" size={26} />
+          <span>
+            <strong>{site.charity.since}</strong>
+            {reports && <a href={reports.href} class="link-underline">{reports.label}</a>}
+          </span>
+        </li>
+        <li>
+          <Icon name="heart" size={26} />
+          <span>
+            <strong>Tax receipts</strong>
+            {site.footer.taxReceipt}
+          </span>
+        </li>
+      </ul>
+    </div>
+
+    <div class="trust-partners" data-reveal="2">
+      <h3 class="partners-heading">{partnersHeading}</h3>
+      <ul class="partners">
+        {partners.map((p) => <li>{p}</li>)}
+      </ul>
+    </div>
+  </div>
+</section>
+
+<style>
+  .trust {
+    padding-block: clamp(3.5rem, 2.5rem + 4vw, 6rem);
+    border-top: 1px solid var(--color-line);
+  }
+  .trust-grid {
+    display: grid;
+    gap: 3rem;
+  }
+  .trust-heading {
+    max-width: 22ch;
+    font-size: var(--text-step-3);
+  }
+  .facts {
+    display: grid;
+    gap: 1.25rem;
+    margin-top: 2rem;
+  }
+  .facts li {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  .facts li :global(svg) {
+    flex: none;
+    color: var(--color-green-700);
+  }
+  .facts span {
+    display: grid;
+    gap: 0.1rem;
+    color: var(--color-ink-muted);
+  }
+  .facts strong {
+    color: var(--color-ink);
+  }
+  .facts a {
+    justify-self: start;
+    color: var(--color-green-700);
+    font-weight: 600;
+  }
+  .partners-heading {
+    font-family: var(--font-sans);
+    font-size: var(--text-step--1);
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-green-700);
+  }
+  /* Partner names as quiet typographic "logos" until real logos arrive. */
+  .partners {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+  }
+  .partners li {
+    padding: 0.6rem 1.1rem;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-pill);
+    background: var(--color-paper);
+    font-family: var(--font-display);
+    font-variation-settings: 'SOFT' 100;
+    font-size: 1.05rem;
+    font-weight: 560;
+    color: var(--color-green-900);
+  }
+
+  @media (min-width: 64rem) {
+    .trust-grid {
+      grid-template-columns: 1fr 1.3fr;
+      gap: 5rem;
+    }
+  }
+</style>

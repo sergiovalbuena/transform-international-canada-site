@@ -1,0 +1,99 @@
+---
+/**
+ * Content pages: About pages, What we do and Contact, one per file in
+ * src/content/pages/ (the file path is the web address). Pages not written
+ * yet are listed in src/content/settings/site.json → comingSoon and get a
+ * friendly "coming soon" page.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ComingSoon from '../components/ui/ComingSoon.astro';
+import Sections from '../components/project/Sections.astro';
+import Icon from '../components/ui/Icon.astro';
+import { emphasize, getPages, getSite, plain, rich } from '../lib/content';
+
+export async function getStaticPaths() {
+  const site = await getSite();
+  const pages = await getPages();
+  const about = site.nav.find((item) => item.href === '/who-we-are/')?.children ?? [];
+  return [
+    ...pages.map((entry) => ({ params: { page: entry.id }, props: { kind: 'page' as const, entry, about } })),
+    ...site.comingSoon.map((page) => ({ params: { page: page.slug }, props: { kind: 'soon' as const, page } })),
+  ];
+}
+
+const props = Astro.props;
+---
+
+{
+  props.kind === 'soon' ? (
+    <BaseLayout title={props.page.title} description={props.page.description}>
+      <ComingSoon title={props.page.title} description={props.page.description} oldUrl={props.page.oldUrl} />
+    </BaseLayout>
+  ) : (
+    <BaseLayout title={props.entry.data.title} description={props.entry.data.description}>
+      <section class="page-hero" aria-labelledby="page-title">
+        <div class="container-site page-hero-inner">
+          {props.entry.data.eyebrow && <p class="eyebrow">{props.entry.data.eyebrow}</p>}
+          <h1 id="page-title" class="heading-xl" set:html={emphasize(props.entry.data.heading ?? props.entry.data.title)} />
+          {props.entry.data.intro.map((para) => (
+            <p class="lede" set:html={rich(para)} />
+          ))}
+        </div>
+      </section>
+      <Sections sections={props.entry.data.sections} />
+      {props.entry.data.aboutLinks && (
+        <nav class="section band-sand about-links" aria-labelledby="about-links-title">
+          <div class="container-site">
+            <h2 id="about-links-title" class="heading-sm">More about us</h2>
+            <ul class="about-list">
+              {props.about
+                .filter((link) => link.href !== `/${props.entry.id}/`)
+                .map((link) => (
+                  <li>
+                    <a href={link.href} class="link-arrow">
+                      {plain(link.label)}
+                      <Icon name="arrow" size={20} />
+                    </a>
+                  </li>
+                ))}
+            </ul>
+          </div>
+        </nav>
+      )}
+    </BaseLayout>
+  )
+}
+
+<style>
+  .page-hero {
+    background: var(--color-sand);
+  }
+  .page-hero-inner {
+    display: grid;
+    gap: 1.25rem;
+    padding-block: clamp(4rem, 3rem + 5vw, 7rem) clamp(3rem, 2rem + 3vw, 4.5rem);
+  }
+  /* A touch smaller than heading-xl on phones, so titles such as "Board of
+     Directors" stay on one line in the fallback font too (no layout shift
+     when the web font arrives). */
+  .page-hero-inner .heading-xl {
+    font-size: clamp(2.25rem, 1.6rem + 3.4vw, 4.75rem);
+  }
+  .page-hero-inner .lede {
+    max-width: 46rem;
+  }
+  .page-hero-inner :global(a) {
+    color: var(--color-green-700);
+    font-weight: 600;
+  }
+  .about-links {
+    padding-block: clamp(3rem, 2rem + 3vw, 4.5rem);
+    border-top: 1px solid var(--color-line);
+  }
+  .about-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem 2.5rem;
+    margin-top: 1.5rem;
+  }
+</style>

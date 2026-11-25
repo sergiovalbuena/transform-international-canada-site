@@ -1,0 +1,18 @@
+# Old web addresses that moved (Netlify format).
+# -----------------------------------------------
+# The live site is on Vercel, which ignores this file and reads the same list
+# from vercel.json. Edit vercel.json first, then copy any change here.
+#
+# 301 means "moved permanently", which also tells search engines to update.
+/who-we-are/vision-and-mission/    /who-we-are/our-story/#mission    301
+/who-we-are/theory-of-change/    /who-we-are/our-story/#theory-of-change    301
+/reports/    /stories/    301
+/street-business-school-burundia-strong-start-to-2026/    /stories/street-business-school-strong-start/    301
+/from-potential-to-possibility-stories-from-rwanda/    /stories/from-potential-to-possibility/    301
+/clean-water-is-a-blessing/    /stories/clean-water-is-a-blessing/    301
+/q3-progress-business-training-in-burundi/    /stories/q3-progress-burundi/    301
+/celebrating-masters-students-in-rwanda/    /stories/celebrating-masters-students/    301
+/tic-welcomes-rwanda-rising/    /stories/    301
+/1-in-4-health-care-facilities-lack-basic-water-services/    /stories/    301
+/support-transform-with-your-purchases/    /stories/    301
+/solar-in-malawi/    /stories/    301

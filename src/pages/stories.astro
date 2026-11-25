@@ -1,0 +1,54 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import StoryCard from '../components/ui/StoryCard.astro';
+import { getStories } from '../lib/content';
+
+const stories = await getStories();
+---
+
+<BaseLayout
+  title="Stories"
+  description="News and stories from our partners in Burundi, Rwanda, Malawi and India: graduations, scholarships, clean water and more."
+>
+  <section class="stories-hero" aria-labelledby="page-title">
+    <div class="container-site stories-hero-inner">
+      <p class="eyebrow">Stories</p>
+      <h1 id="page-title" class="heading-xl">News from <em>the field</em></h1>
+      <p class="lede">
+        Graduations, scholarships, clean water and new businesses — in the words of the people making them happen.
+      </p>
+    </div>
+  </section>
+  <section class="section band-cream stories-list" aria-label="All stories">
+    <div class="container-site">
+      <ul class="story-grid">
+        {
+          stories.map((story, i) => (
+            <li data-reveal={(i % 3) + 1}>
+              <StoryCard story={story} headingLevel="h2" />
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .stories-hero {
+    background: var(--color-sand);
+  }
+  .stories-hero-inner {
+    display: grid;
+    gap: 1.25rem;
+    padding-block: clamp(4rem, 3rem + 5vw, 7rem) clamp(3rem, 2rem + 3vw, 4.5rem);
+  }
+  .stories-list {
+    padding-top: clamp(3rem, 2rem + 3vw, 4.5rem);
+  }
+  .story-grid {
+    display: grid;
+    gap: 3rem 2rem;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+  }
+</style>

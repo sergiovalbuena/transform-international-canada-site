@@ -1,0 +1,164 @@
+---
+/**
+ * The suggested-gift cards, used on the home page, the Donate page and program
+ * pages. All amounts come from src/content/settings/giving.json. Levels with
+ * `"published": false` are hidden, and each level's `showOn` list decides
+ * where it appears. A level can only be published once it has an amount
+ * (the build checks this), so no amount is ever made up.
+ */
+import { getEntry } from 'astro:content';
+import Icon from './Icon.astro';
+import { formatMoney, getPublishedLevels, projectHref, type GivingPlace } from '../../lib/content';
+
+interface Props {
+  /** Which page this is: only levels with this place in `showOn` are shown. */
+  where: GivingPlace;
+  /** Only show this program's levels (on its own page the program link is hidden). */
+  project?: string;
+  /** Link each card straight to its program's Zeffy form instead of the Donate page. */
+  linkToZeffy?: boolean;
+  /** Group by program (in program order), smallest gift first, instead of the giving.json order. */
+  byProgram?: boolean;
+  headingLevel?: 'h3' | 'h4';
+}
+
+const { where, project, linkToZeffy = false, byProgram = false, headingLevel: Heading = 'h3' } = Astro.props;
+const levels = (
+  await Promise.all(
+    (await getPublishedLevels(where, project)).map(async (level) => ({
+      ...level,
+      amount: level.amount as number,
+      project: await getEntry(level.project),
+    })),
+  )
+).sort((a, b) => (byProgram ? a.project.data.order - b.project.data.order || a.amount - b.amount : 0));
+---
+
+<ul class:list={['giving-grid', { 'is-pair': levels.length <= 2, 'is-trio': levels.length % 3 === 0 || levels.length === 5 }]}>
+  {
+    levels.map((level, i) => {
+      const p = level.project;
+      const href = linkToZeffy ? p.data.zeffyUrl : '/donate/';
+      return (
+        <li class="gift" style={`--accent: var(--color-${p.data.accent})`} data-reveal={i + 1}>
+          <p class="gift-amount">{formatMoney(level.amount)}</p>
+          <Heading class="gift-title">{level.title}</Heading>
+          <p class="gift-text">{level.text}</p>
+          {!project && (
+            <p class="gift-program">
+              <a href={projectHref(p.id)}>{p.data.shortTitle}</a>
+            </p>
+          )}
+          <a href={href} class="gift-link" rel={linkToZeffy ? 'noopener' : undefined}>
+            Give {formatMoney(level.amount)} to {p.data.shortTitle}
+            <Icon name={linkToZeffy ? 'external' : 'arrow'} size={18} />
+            {linkToZeffy && <span class="visually-hidden">(opens the secure Zeffy donation form)</span>}
+          </a>
+        </li>
+      );
+    })
+  }
+</ul>
+
+<style>
+  .giving-grid {
+    display: grid;
+    gap: 1.25rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 15.5rem), 1fr));
+  }
+  /* With only one or two levels, keep cards a comfortable width instead of
+     stretching them across the page. */
+  .giving-grid.is-pair {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 24rem));
+  }
+  /* Three, five or six cards: rows of three on wide screens (3 + 2 for five),
+     so no card is left alone on a row. */
+  @media (min-width: 64rem) {
+    .giving-grid.is-trio {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  .gift {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 1.75rem 1.6rem 1.5rem;
+    border-radius: var(--radius-lg);
+    background: var(--color-paper);
+    border: 1px solid var(--color-line);
+    transition:
+      transform var(--duration-base) var(--ease-out),
+      box-shadow var(--duration-base) var(--ease-out),
+      border-color var(--duration-base) var(--ease-out);
+  }
+  @media (hover: hover) {
+    .gift:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-lift);
+      border-color: transparent;
+    }
+  }
+  .gift::before {
+    content: '';
+    width: 2.75rem;
+    height: 6px;
+    margin-bottom: 0.75rem;
+    border-radius: 3px;
+    background: var(--accent);
+  }
+  .gift-amount {
+    font-family: var(--font-display);
+    font-variation-settings: 'SOFT' 100;
+    font-size: clamp(2.25rem, 1.8rem + 1.6vw, 3rem);
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    color: var(--color-green-800);
+    min-height: 1em;
+  }
+  .gift-title {
+    font-size: var(--text-step-2);
+  }
+  .gift-text {
+    color: var(--color-ink-muted);
+    font-size: 0.975rem;
+    line-height: 1.55;
+  }
+  .gift-program {
+    font-size: var(--text-step--1);
+    font-weight: 700;
+  }
+  .gift-program a {
+    color: var(--color-ink);
+    text-decoration-color: var(--accent);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 4px;
+  }
+  .gift-link {
+    display: inline;
+    align-self: flex-start;
+    margin-top: auto;
+    padding-top: 1rem;
+    font-weight: 700;
+    color: var(--color-green-700);
+    text-decoration: none;
+  }
+  .gift-link :global(svg) {
+    display: inline;
+    margin-left: 0.3rem;
+    vertical-align: -0.2em;
+  }
+  .gift-link:hover {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .gift {
+      transition: none;
+    }
+    .gift:hover {
+      transform: none;
+    }
+  }
+</style>

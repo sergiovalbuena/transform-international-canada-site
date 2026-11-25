@@ -1,0 +1,68 @@
+---
+import Counter from '../ui/Counter.astro';
+
+interface Props {
+  stats: { value: number; prefix?: string; suffix?: string; label: string }[];
+  accent: string;
+}
+
+const { stats, accent } = Astro.props;
+---
+
+{
+  stats.length > 0 && (
+    <div class="container-site stats-wrap" style={`--accent: var(--color-${accent})`}>
+      <h2 class="visually-hidden">Key results</h2>
+      <ul class="stats">
+        {stats.map((s) => (
+          <li class="stat">
+            <Counter value={s.value} prefix={s.prefix} suffix={s.suffix} class="stat-number" />
+            <span class="stat-label">{s.label}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+<style>
+  .stats-wrap {
+    position: relative;
+    z-index: 2;
+    margin-top: -3rem;
+  }
+  .stats {
+    display: grid;
+    gap: 0;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+    border-radius: var(--radius-lg);
+    background: var(--color-paper);
+    border-top: 6px solid var(--accent);
+    box-shadow: var(--shadow-lift);
+    overflow: hidden;
+  }
+  .stat {
+    display: grid;
+    gap: 0.4rem;
+    align-content: start;
+    padding: 1.75rem 2rem;
+    /* Hairlines between stats, whether they sit in a row or a column. */
+    box-shadow:
+      -1px 0 0 var(--color-line),
+      0 -1px 0 var(--color-line);
+  }
+  .stat :global(.stat-number) {
+    font-family: var(--font-display);
+    font-variation-settings: 'SOFT' 100;
+    font-size: var(--text-step-5);
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    color: var(--color-green-800);
+  }
+  .stat-label {
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--color-ink-muted);
+  }
+</style>

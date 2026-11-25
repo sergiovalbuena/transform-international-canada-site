@@ -1,0 +1,42 @@
+---
+/**
+ * A number that counts up when it scrolls into view. The invisible "ghost"
+ * copy reserves the final width so the animation never shifts the layout,
+ * and screen readers only ever hear the final value.
+ */
+import { formatNumber } from '../../lib/content';
+
+interface Props {
+  value: number;
+  prefix?: string;
+  suffix?: string;
+  class?: string;
+}
+
+const { value, prefix = '', suffix = '', class: className } = Astro.props;
+const final = `${prefix}${formatNumber(value)}${suffix}`;
+---
+
+<span class:list={['counter', className]}>
+  <span class="counter-ghost" aria-hidden="true">{final}</span>
+  <span class="counter-live" aria-hidden="true" data-count-to={value} data-prefix={prefix} data-suffix={suffix}
+    >{final}</span
+  >
+  <span class="visually-hidden">{final}</span>
+</span>
+
+<style>
+  .counter {
+    position: relative;
+    display: inline-block;
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+  .counter-ghost {
+    visibility: hidden;
+  }
+  .counter-live {
+    position: absolute;
+    inset: 0;
+    white-space: nowrap;
+  }
+</style>
